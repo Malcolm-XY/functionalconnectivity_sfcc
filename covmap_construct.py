@@ -2,22 +2,9 @@ import os
 import numpy
 import pandas
 
-def get_distribution():
-    # path
-    path_current = os.getcwd()
-   
-    # path_smap
-    path_smap = os.path.join(path_current, 'mapping', 'smap.txt')
-    # path_channel order
-    path_order = os.path.join(path_current, 'mapping', 'biosemi62_64_channels_original_distribution.txt')
-    
-    # read smap, channel order from .txt
-    smap, order = pandas.read_csv(path_smap, sep='\t', header=None), pandas.read_csv(path_order, sep='\t')
-    smap, order = numpy.array(smap), numpy.array(order['channel'])
-    
-    return smap, order
+import utils
 
-def generate_sfcc(cm_data):
+def generate_sfcc(cm_data, imshow=False):
     """
     Generate SFCC (Sparse Functional Connectivity Convolution) from CM data.
 
@@ -61,7 +48,24 @@ def generate_sfcc(cm_data):
     else:
         raise ValueError("Input cm_data must be 3D or 4D.")
 
+    if imshow: utils.draw_projection(sfcc[0])
+
     return sfcc
+
+def get_distribution():
+    # path
+    path_current = os.getcwd()
+   
+    # path_smap
+    path_smap = os.path.join(path_current, 'mapping', 'smap.txt')
+    # path_channel order
+    path_order = os.path.join(path_current, 'mapping', 'biosemi62_64_channels_original_distribution.txt')
+    
+    # read smap, channel order from .txt
+    smap, order = pandas.read_csv(path_smap, sep='\t', header=None), pandas.read_csv(path_order, sep='\t')
+    smap, order = numpy.array(smap), numpy.array(order['channel'])
+    
+    return smap, order
 
 def build_sfcc(smap, order, cm_data):
     # 文件1：生成 lmap 和 covmap
@@ -175,31 +179,7 @@ def cm2sfcc(cm_data, covmap_num):
     
     return sfcc_temp
 
-# %% Example Usage
-# import utils
-# import matplotlib.pyplot as plt
-
-# def draw_projection(sample_projection):
-#     if sample_projection.ndim == 2:
-#         # Visualize the 2D matrix
-#         plt.imshow(sample_projection, cmap='viridis')  # Use 'viridis' colormap
-#         plt.colorbar()  # Add a colorbar
-#         plt.title("Matrix Visualization using imshow")
-#         plt.xlabel("X-axis")
-#         plt.ylabel("Y-axis")
-#         plt.show()
-#     elif sample_projection.ndim == 3 and sample_projection.shape[0] == 3:
-#         # Visualize each channel of the 3D projection
-#         for i, channel_projection in enumerate(sample_projection):
-#             plt.imshow(channel_projection, cmap='viridis')  # Use 'viridis' colormap
-#             plt.colorbar()  # Add a colorbar
-#             plt.title(f"Matrix Visualization of Channel {i + 1}")
-#             plt.xlabel("X-axis")
-#             plt.ylabel("Y-axis")
-#             plt.show()
-#     else:
-#         raise ValueError("Input projection sample should be a 2D array or a 3D array with 3 channels.")
-
+# # %% Example Usage
 # # # 示例变量
 # # smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
 # # order = ["ch1", "ch2", "ch3", "ch4"]
@@ -221,6 +201,6 @@ def cm2sfcc(cm_data, covmap_num):
 # # sfcc = cm2sfcc(cm_data, covmap_num)
 # # draw_projection(sfcc[0])
 
-# cm_data = utils.load_cmdata2d('PCC', 'alpha', 'sub1ex1')
-# sfcc = generate_sfcc(cm_data)
-# draw_projection(sfcc[0])
+# cm_data = utils.load_cmdata2d('PCC', 'joint', 'sub1ex1')
+# utils.draw_projection(cm_data[0])
+# sfcc = generate_sfcc(cm_data, imshow=True)

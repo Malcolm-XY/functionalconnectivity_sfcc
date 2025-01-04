@@ -32,7 +32,7 @@ def raed_labels(path_txt):
     
     return labels
 
-def load_cmdata2d(selected_feature, selected_band, experiment):
+def load_cmdata2d(selected_feature, selected_band, experiment, imshow=False):
     """
     根据选择的特征和频段加载对应的共现矩阵数据。
 
@@ -48,33 +48,43 @@ def load_cmdata2d(selected_feature, selected_band, experiment):
     """
     if selected_feature == 'PCC':
         cmdata = get_cmdata('PCC', experiment)
-        cmdata_alpha = cmdata['cmpcc_alpha']
-        cmdata_beta = cmdata['cmpcc_beta']
-        cmdata_gamma = cmdata['cmpcc_gamma']
+        cmdata_alpha = cmdata['alpha']
+        cmdata_beta = cmdata['beta']
+        cmdata_gamma = cmdata['gamma']
         if selected_band == 'alpha':
+            if imshow: draw_projection(cmdata_alpha[0])
             return cmdata_alpha
         elif selected_band == 'beta':
+            if imshow: draw_projection(cmdata_beta[0])
             return cmdata_beta
         elif selected_band == 'gamma':
+            if imshow: draw_projection(cmdata_gamma[0])
             return cmdata_gamma
         elif selected_band == 'joint':
-            return numpy.stack((cmdata_alpha, cmdata_beta, cmdata_gamma), axis=1)
+            cmdata = numpy.stack((cmdata_alpha, cmdata_beta, cmdata_gamma), axis=1)
+            if imshow: draw_projection(cmdata[0])
+            return cmdata
         else:
             raise ValueError(f"Invalid band selection: {selected_band}")
 
     elif selected_feature == 'PLV':
         cmdata = get_cmdata('PLV', experiment)
-        cmdata_alpha = cmdata['cmplv_alpha']
-        cmdata_beta = cmdata['cmplv_beta']
-        cmdata_gamma = cmdata['cmplv_gamma']
+        cmdata_alpha = cmdata['alpha']
+        cmdata_beta = cmdata['beta']
+        cmdata_gamma = cmdata['gamma']
         if selected_band == 'alpha':
+            if imshow: draw_projection(cmdata_alpha[0])
             return cmdata_alpha
         elif selected_band == 'beta':
+            if imshow: draw_projection(cmdata_beta[0])
             return cmdata_beta
         elif selected_band == 'gamma':
+            if imshow: draw_projection(cmdata_gamma[0])
             return cmdata_gamma
         elif selected_band == 'joint':
-            return numpy.stack((cmdata_alpha, cmdata_beta, cmdata_gamma), axis=1)
+            cmdata = numpy.stack((cmdata_alpha, cmdata_beta, cmdata_gamma), axis=1)
+            if imshow: draw_projection(cmdata[0])
+            return cmdata
         else:
             raise ValueError(f"Invalid band selection: {selected_band}")
 
@@ -97,9 +107,9 @@ def load_cmdata1d(selected_feature, selected_band, experiment):
     """
     if selected_feature == 'PCC':
         cmdata = get_cmdata('PCC', experiment)
-        cmdata_alpha = cmdata['cmpcc_alpha'].reshape(-1, cmdata['cmpcc_alpha'].shape[1]**2)
-        cmdata_beta = cmdata['cmpcc_beta'].reshape(-1, cmdata['cmpcc_beta'].shape[1]**2)
-        cmdata_gamma = cmdata['cmpcc_gamma'].reshape(-1, cmdata['cmpcc_gamma'].shape[1]**2)
+        cmdata_alpha = cmdata['alpha'].reshape(-1, cmdata['alpha'].shape[1]**2)
+        cmdata_beta = cmdata['beta'].reshape(-1, cmdata['beta'].shape[1]**2)
+        cmdata_gamma = cmdata['gamma'].reshape(-1, cmdata['gamma'].shape[1]**2)
         if selected_band == 'alpha':
             return cmdata_alpha
         elif selected_band == 'beta':
@@ -113,9 +123,9 @@ def load_cmdata1d(selected_feature, selected_band, experiment):
 
     elif selected_feature == 'PLV':
         cmdata = get_cmdata('PLV', experiment)
-        cmdata_alpha = cmdata['cmplv_alpha'].reshape(-1, cmdata['cmplv_alpha'].shape[1]**2)
-        cmdata_beta = cmdata['cmplv_beta'].reshape(-1, cmdata['cmplv_beta'].shape[1]**2)
-        cmdata_gamma = cmdata['cmplv_gamma'].reshape(-1, cmdata['cmplv_gamma'].shape[1]**2)
+        cmdata_alpha = cmdata['alpha'].reshape(-1, cmdata['alpha'].shape[1]**2)
+        cmdata_beta = cmdata['beta'].reshape(-1, cmdata['beta'].shape[1]**2)
+        cmdata_gamma = cmdata['gamma'].reshape(-1, cmdata['gamma'].shape[1]**2)
         if selected_band == 'alpha':
             return cmdata_alpha
         elif selected_band == 'beta':
@@ -189,8 +199,31 @@ def cmdata_reshaper(mat_data):
 
     return mat_data
 
-# %% Example Usage
-# cmdata1d_joint = load_cmdata1d('PCC', 'joint', 'sub1ex1')
-# cmdata1d_gamma = load_cmdata1d('PCC', 'gamma', 'sub1ex1')
-# cmdata2d_joint = load_cmdata2d('PCC', 'joint', 'sub1ex1')
-# cmdata2d_gamma = load_cmdata2d('PCC', 'gamma', 'sub1ex1')
+import matplotlib.pyplot as plt
+
+def draw_projection(sample_projection):
+    if sample_projection.ndim == 2:
+        # Visualize the 2D matrix
+        plt.imshow(sample_projection, cmap='viridis')  # Use 'viridis' colormap
+        plt.colorbar()  # Add a colorbar
+        plt.title("Matrix Visualization using imshow")
+        plt.xlabel("X-axis")
+        plt.ylabel("Y-axis")
+        plt.show()
+    elif sample_projection.ndim == 3 and sample_projection.shape[0] == 3:
+        # Visualize each channel of the 3D projection
+        for i, channel_projection in enumerate(sample_projection):
+            plt.imshow(channel_projection, cmap='viridis')  # Use 'viridis' colormap
+            plt.colorbar()  # Add a colorbar
+            plt.title(f"Matrix Visualization of Channel {i + 1}")
+            plt.xlabel("X-axis")
+            plt.ylabel("Y-axis")
+            plt.show()
+    else:
+        raise ValueError("Input projection sample should be a 2D array or a 3D array with 3 channels.")
+
+# # %% Example Usage
+# cmdata1d_joint = load_cmdata1d('PLV', 'joint', 'sub1ex1')
+# cmdata1d_gamma = load_cmdata1d('PLV', 'gamma', 'sub1ex1')
+# cmdata2d_joint = load_cmdata2d('PLV', 'joint', 'sub1ex1')
+# cmdata2d_gamma = load_cmdata2d('PLV', 'gamma', 'sub1ex1')

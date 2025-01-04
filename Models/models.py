@@ -9,9 +9,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class CNN2DModel_3ch(nn.Module):
+class CNN2DModel(nn.Module):
     def __init__(self, channels=3, num_classes=3):
-        super(CNN2DModel_3ch, self).__init__()
+        super(CNN2DModel, self).__init__()
 
         # 第一层卷积 + BatchNorm + 池化
         self.conv1 = nn.Conv2d(in_channels=channels, out_channels=64, kernel_size=3, stride=1, padding=1)
