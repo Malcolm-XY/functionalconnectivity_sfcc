@@ -187,8 +187,9 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=30):
 from Models import models, models_multiscale
 
 # training settings
-model = models.CNN2DModel()
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(6, 16), range(1, 4)
+# model = models.CNN2DModel()
+model = models_multiscale.MultiScaleCNN()
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(6, 11), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -199,4 +200,4 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # End program actions
-end_program_actions(play_sound=True, shutdown=True)
+end_program_actions(play_sound=True, shutdown=False)
