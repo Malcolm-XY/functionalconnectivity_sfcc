@@ -78,112 +78,54 @@ class MultiScaleCNN(nn.Module):
 
         return x
 
-class MultiScaleCNN_2Input(nn.Module):
-    def __init__(self, in_channels1=3, in_channels2=3, num_classes=3):
-        super(MultiScaleCNN_2Input, self).__init__()
+class SimpleMultiScaleCNN(nn.Module):
+    def __init__(self, in_channels=3, num_classes=3):
+        super(SimpleMultiScaleCNN, self).__init__()
+        
+        # 第一条分支
+        self.branch1 = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=7, stride=7, padding=3),  # padding 计算为 (kernel_size - 1) // 2
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d(1)  # 输出固定为 1x1
+        )
+        
+        # 第二条分支
+        self.branch2 = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=9, stride=9, padding=4),  # padding 计算为 (kernel_size - 1) // 2
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d(1)  # 输出固定为 1x1
+        )
+        
+        # 第三条分支
+        self.branch3 = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=5, stride=5, padding=2),  # padding 计算为 (kernel_size - 1) // 2
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d(1)  # 输出固定为 1x1
+        )
+        
+        # 合并和输出层
+        self.concat_norm = nn.BatchNorm1d(48)
+        self.dropout = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(48, 8)
+        self.fc2 = nn.Linear(8, 3)
+        self.softmax = nn.Softmax(dim=1)
 
-        # 子网络1：输入1的多尺度卷积分支
-        self.input1_branch1_conv1 = nn.Conv2d(in_channels1, 32, kernel_size=3, stride=1, padding=1)
-        self.input1_branch1_bn1 = nn.BatchNorm2d(32)
-        self.input1_branch1_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input1_branch1_conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.input1_branch1_bn2 = nn.BatchNorm2d(64)
-        self.input1_branch1_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input1_branch2_conv1 = nn.Conv2d(in_channels1, 32, kernel_size=5, stride=1, padding=2)
-        self.input1_branch2_bn1 = nn.BatchNorm2d(32)
-        self.input1_branch2_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input1_branch2_conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2)
-        self.input1_branch2_bn2 = nn.BatchNorm2d(64)
-        self.input1_branch2_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input1_branch3_conv1 = nn.Conv2d(in_channels1, 32, kernel_size=7, stride=1, padding=3)
-        self.input1_branch3_bn1 = nn.BatchNorm2d(32)
-        self.input1_branch3_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input1_branch3_conv2 = nn.Conv2d(32, 64, kernel_size=7, stride=1, padding=3)
-        self.input1_branch3_bn2 = nn.BatchNorm2d(64)
-        self.input1_branch3_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # 子网络2：输入2的多尺度卷积分支（结构与输入1一致）
-        self.input2_branch1_conv1 = nn.Conv2d(in_channels2, 32, kernel_size=3, stride=1, padding=1)
-        self.input2_branch1_bn1 = nn.BatchNorm2d(32)
-        self.input2_branch1_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input2_branch1_conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.input2_branch1_bn2 = nn.BatchNorm2d(64)
-        self.input2_branch1_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input2_branch2_conv1 = nn.Conv2d(in_channels2, 32, kernel_size=5, stride=1, padding=2)
-        self.input2_branch2_bn1 = nn.BatchNorm2d(32)
-        self.input2_branch2_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input2_branch2_conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2)
-        self.input2_branch2_bn2 = nn.BatchNorm2d(64)
-        self.input2_branch2_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input2_branch3_conv1 = nn.Conv2d(in_channels2, 32, kernel_size=7, stride=1, padding=3)
-        self.input2_branch3_bn1 = nn.BatchNorm2d(32)
-        self.input2_branch3_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        self.input2_branch3_conv2 = nn.Conv2d(32, 64, kernel_size=7, stride=1, padding=3)
-        self.input2_branch3_bn2 = nn.BatchNorm2d(64)
-        self.input2_branch3_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # 融合两路特征
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc1 = nn.Linear(64 * 3 * 2, 128)  # 两个输入的每路特征拼接
-        self.fc2 = nn.Linear(128, num_classes)
-
-    def forward(self, input1, input2):
-        # 处理输入1
-        input1_branch1 = F.relu(self.input1_branch1_bn1(self.input1_branch1_conv1(input1)))
-        input1_branch1 = self.input1_branch1_pool1(input1_branch1)
-        input1_branch1 = F.relu(self.input1_branch1_bn2(self.input1_branch1_conv2(input1_branch1)))
-        input1_branch1 = self.input1_branch1_pool2(input1_branch1)
-
-        input1_branch2 = F.relu(self.input1_branch2_bn1(self.input1_branch2_conv1(input1)))
-        input1_branch2 = self.input1_branch2_pool1(input1_branch2)
-        input1_branch2 = F.relu(self.input1_branch2_bn2(self.input1_branch2_conv2(input1_branch2)))
-        input1_branch2 = self.input1_branch2_pool2(input1_branch2)
-
-        input1_branch3 = F.relu(self.input1_branch3_bn1(self.input1_branch3_conv1(input1)))
-        input1_branch3 = self.input1_branch3_pool1(input1_branch3)
-        input1_branch3 = F.relu(self.input1_branch3_bn2(self.input1_branch3_conv2(input1_branch3)))
-        input1_branch3 = self.input1_branch3_pool2(input1_branch3)
-
-        input1_branch1 = self.global_pool(input1_branch1).view(input1.size(0), -1)
-        input1_branch2 = self.global_pool(input1_branch2).view(input1.size(0), -1)
-        input1_branch3 = self.global_pool(input1_branch3).view(input1.size(0), -1)
-
-        # 处理输入2
-        input2_branch1 = F.relu(self.input2_branch1_bn1(self.input2_branch1_conv1(input2)))
-        input2_branch1 = self.input2_branch1_pool1(input2_branch1)
-        input2_branch1 = F.relu(self.input2_branch1_bn2(self.input2_branch1_conv2(input2)))
-        input2_branch1 = self.input2_branch1_pool2(input2_branch1)
-
-        input2_branch2 = F.relu(self.input2_branch2_bn1(self.input2_branch2_conv1(input2)))
-        input2_branch2 = self.input2_branch2_pool1(input2_branch2)
-        input2_branch2 = F.relu(self.input2_branch2_bn2(self.input2_branch2_conv2(input2)))
-        input2_branch2 = self.input2_branch2_pool2(input2_branch2)
-
-        input2_branch3 = F.relu(self.input2_branch3_bn1(self.input2_branch3_conv1(input2)))
-        input2_branch3 = self.input2_branch3_pool1(input2_branch3)
-        input2_branch3 = F.relu(self.input2_branch3_bn2(self.input2_branch3_conv2(input2)))
-        input2_branch3 = self.input2_branch3_pool2(input2_branch3)
-
-        input2_branch1 = self.global_pool(input2_branch1).view(input2.size(0), -1)
-        input2_branch2 = self.global_pool(input2_branch2).view(input2.size(0), -1)
-        input2_branch3 = self.global_pool(input2_branch3).view(input2.size(0), -1)
-
-        # 拼接输入1和输入2的特征
-        combined = torch.cat([input1_branch1, input1_branch2, input1_branch3,
-                              input2_branch1, input2_branch2, input2_branch3], dim=1)
-
-        # 全连接层
-        x = F.relu(self.fc1(combined))
-        x = self.fc2(x)
-
-        return x
+    def forward(self, x):
+        # 分支输出
+        out1 = self.branch1(x).view(x.size(0), -1)  # 展平
+        out2 = self.branch2(x).view(x.size(0), -1)  # 展平
+        out3 = self.branch3(x).view(x.size(0), -1)  # 展平
+        
+        # 合并分支
+        out = torch.cat([out1, out2, out3], dim=1)
+        out = self.concat_norm(out)
+        out = self.dropout(out)
+        
+        # 全连接层和分类
+        out = self.fc1(out)
+        out = self.fc2(out)
+        out = self.softmax(out)
+        return out
