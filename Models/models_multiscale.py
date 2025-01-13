@@ -9,6 +9,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class MultiScaleCNN(nn.Module):
     def __init__(self, in_channels=3, num_classes=3):
         super(MultiScaleCNN, self).__init__()
@@ -21,6 +25,14 @@ class MultiScaleCNN(nn.Module):
         self.branch1_conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.branch1_bn2 = nn.BatchNorm2d(64)
         self.branch1_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        
+        self.branch1_conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.branch1_bn3 = nn.BatchNorm2d(128)
+        self.branch1_pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.branch1_conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
+        self.branch1_bn4 = nn.BatchNorm2d(256)
+        self.branch1_pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # 分支2：中尺度特征
         self.branch2_conv1 = nn.Conv2d(in_channels, 32, kernel_size=5, stride=1, padding=2)
@@ -30,6 +42,14 @@ class MultiScaleCNN(nn.Module):
         self.branch2_conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2)
         self.branch2_bn2 = nn.BatchNorm2d(64)
         self.branch2_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        
+        self.branch2_conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.branch2_bn3 = nn.BatchNorm2d(128)
+        self.branch2_pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.branch2_conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
+        self.branch2_bn4 = nn.BatchNorm2d(256)
+        self.branch2_pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # 分支3：大尺度特征
         self.branch3_conv1 = nn.Conv2d(in_channels, 32, kernel_size=7, stride=1, padding=3)
@@ -39,43 +59,53 @@ class MultiScaleCNN(nn.Module):
         self.branch3_conv2 = nn.Conv2d(32, 64, kernel_size=7, stride=1, padding=3)
         self.branch3_bn2 = nn.BatchNorm2d(64)
         self.branch3_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        
+        self.branch3_conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.branch3_bn3 = nn.BatchNorm2d(128)
+        self.branch3_pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.branch3_conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
+        self.branch3_bn4 = nn.BatchNorm2d(256)
+        self.branch3_pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # 融合特征
         self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc1 = nn.Linear(64 * 3, 128)
-        self.fc2 = nn.Linear(128, num_classes)
+        
+        self.fc1 = nn.Linear(256 * 3, 512)  # Concatenate three branches
+        self.dropout1 = nn.Dropout(p=0.25)        
+
+        self.fc2 = nn.Linear(512, num_classes)  # Corrected dimension
+        self.dropout2 = nn.Dropout(p=0.25)
 
     def forward(self, x):
         # 分支1
-        branch1 = F.relu(self.branch1_bn1(self.branch1_conv1(x)))
-        branch1 = self.branch1_pool1(branch1)
-        branch1 = F.relu(self.branch1_bn2(self.branch1_conv2(branch1)))
-        branch1 = self.branch1_pool2(branch1)
+        x1 = self.branch1_pool1(F.relu(self.branch1_bn1(self.branch1_conv1(x))))
+        x1 = self.branch1_pool2(F.relu(self.branch1_bn2(self.branch1_conv2(x1))))
+        x1 = self.branch1_pool3(F.relu(self.branch1_bn3(self.branch1_conv3(x1))))
+        x1 = self.branch1_pool4(F.relu(self.branch1_bn4(self.branch1_conv4(x1))))
+        x1 = self.global_pool(x1)
+        x1 = torch.flatten(x1, 1)
 
         # 分支2
-        branch2 = F.relu(self.branch2_bn1(self.branch2_conv1(x)))
-        branch2 = self.branch2_pool1(branch2)
-        branch2 = F.relu(self.branch2_bn2(self.branch2_conv2(branch2)))
-        branch2 = self.branch2_pool2(branch2)
+        x2 = self.branch2_pool1(F.relu(self.branch2_bn1(self.branch2_conv1(x))))
+        x2 = self.branch2_pool2(F.relu(self.branch2_bn2(self.branch2_conv2(x2))))
+        x2 = self.branch2_pool3(F.relu(self.branch2_bn3(self.branch2_conv3(x2))))
+        x2 = self.branch2_pool4(F.relu(self.branch2_bn4(self.branch2_conv4(x2))))
+        x2 = self.global_pool(x2)
+        x2 = torch.flatten(x2, 1)
 
         # 分支3
-        branch3 = F.relu(self.branch3_bn1(self.branch3_conv1(x)))
-        branch3 = self.branch3_pool1(branch3)
-        branch3 = F.relu(self.branch3_bn2(self.branch3_conv2(branch3)))
-        branch3 = self.branch3_pool2(branch3)
+        x3 = self.branch3_pool1(F.relu(self.branch3_bn1(self.branch3_conv1(x))))
+        x3 = self.branch3_pool2(F.relu(self.branch3_bn2(self.branch3_conv2(x3))))
+        x3 = self.branch3_pool3(F.relu(self.branch3_bn3(self.branch3_conv3(x3))))
+        x3 = self.branch3_pool4(F.relu(self.branch3_bn4(self.branch3_conv4(x3))))
+        x3 = self.global_pool(x3)
+        x3 = torch.flatten(x3, 1)
 
         # 融合分支
-        branch1 = self.global_pool(branch1).view(x.size(0), -1)
-        branch2 = self.global_pool(branch2).view(x.size(0), -1)
-        branch3 = self.global_pool(branch3).view(x.size(0), -1)
-
-        # 拼接特征
-        combined = torch.cat([branch1, branch2, branch3], dim=1)
-
-        # 全连接层
-        x = F.relu(self.fc1(combined))
-        x = self.fc2(x)
-
+        x = torch.cat((x1, x2, x3), dim=1)
+        x = self.dropout1(F.relu(self.fc1(x)))
+        x = self.dropout2(self.fc2(x))
         return x
 
 class SimpleMultiScaleCNN(nn.Module):
