@@ -9,7 +9,7 @@ import os
 import pandas as pd
 
 import utils
-import svm_evaluation
+import svm_validation
 
 # Loop through subjects and exercises
 # Initialize a list to store all results
@@ -27,7 +27,7 @@ for subject in range(1, 11):
         cmdata = utils.load_cmdata('PLV', 'alpha', identifier)
         
         # Evaluate using the SVM evaluation function
-        result_entry = svm_evaluation.svm_evaluation_single(cmdata, labels, 'sequential', 0.7)
+        result_entry = svm_validation.svm_evaluation_single(cmdata, labels, 'sequential', 0.7)
         
         # Ensure 'Identifier' is the first column by creating a new ordered dictionary
         result_entry = {"Identifier": identifier, **result_entry}

@@ -222,8 +222,8 @@ def draw_projection(sample_projection):
     else:
         raise ValueError("Input projection sample should be a 2D array or a 3D array with 3 channels.")
 
-# # %% Example Usage
-# cmdata1d_joint = load_cmdata1d('PLV', 'joint', 'sub1ex1')
-# cmdata1d_gamma = load_cmdata1d('PLV', 'gamma', 'sub1ex1')
-# cmdata2d_joint = load_cmdata2d('PLV', 'joint', 'sub1ex1')
-# cmdata2d_gamma = load_cmdata2d('PLV', 'gamma', 'sub1ex1')
+# %% Example Usage
+#cmdata1d_joint = load_cmdata1d('PLV', 'joint', 'sub1ex1')
+#cmdata1d_gamma = load_cmdata1d('PLV', 'gamma', 'sub1ex1')
+#cmdata2d_joint = load_cmdata2d('PLV', 'joint', 'sub1ex1')
+#cmdata2d_gamma = load_cmdata2d('PLV', 'gamma', 'sub1ex1')
