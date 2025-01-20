@@ -11,6 +11,7 @@ import pandas as pd
 import utils
 import cnn_validation
 import covmap_construct
+import rearrangedmap_construct
 
 def cnn_validation_circle(model, method, feature, subject_range, experiment_range):
     labels = utils.get_label()
@@ -29,6 +30,10 @@ def cnn_validation_circle(model, method, feature, subject_range, experiment_rang
                 fcdata = covmap_construct.generate_sfcc(cmdata, imshow=True)
             elif method == 'cm':
                 fcdata = cmdata
+            elif method == 'mx':
+                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
+            elif method == 'vc':
+                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
             
             # Validation
             result = cnn_validation.cnn_validation(model, fcdata, labels)
@@ -59,6 +64,10 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
                 fcdata = covmap_construct.generate_sfcc(cmdata, imshow=True)
             elif method == 'cm':
                 fcdata = cmdata
+            elif method == 'mx':
+                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
+            elif method == 'vc':
+                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
             
             # Validation
             result = cnn_validation.cnn_cross_validation(model, fcdata, labels)

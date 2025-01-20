@@ -29,11 +29,11 @@ def generate_rearrangedcm(cm_data, method, imshow=False):
     if method == 'MX':
         # Implement logic for 'MX' rearrangement
         rearranged_indices = get_rearrangedindex(method)
-        sorted_matrix = reshape_and_sort(cm_data, rearranged_indices)
+        sorted_matrix = reshape_and_sort_MX(cm_data, rearranged_indices)
     elif method == 'VC':
         # Implement logic for 'VC' rearrangement
         rearranged_indices = get_rearrangedindex(method)
-        sorted_matrix = reshape_and_sort(cm_data, rearranged_indices)
+        sorted_matrix = reshape_and_sort_VC(cm_data, rearranged_indices)
     else:
         raise ValueError(f"Invalid rearranged method: {method}")
 
@@ -58,7 +58,7 @@ def read_rearrangedindex(path_txt):
     index = pandas.read_csv(path_txt, sep='\t', header=None).to_numpy().flatten()
     return index
 
-def reshape_and_sort(matrix, custom_index):
+def reshape_and_sort_MX(matrix, custom_index):
     """
     将输入矩阵从 samples x channels x n x n 转换为 samples x channels x n^2，
     使用自定义索引对 n^2 维度重新排序后恢复到 samples x channels x n x n。
@@ -89,6 +89,12 @@ def reshape_and_sort(matrix, custom_index):
     reshaped_matrix = sorted_flattened.reshape(samples, channels, n, n)
 
     return reshaped_matrix
+
+def reshape_and_sort_VC(matrix, index):
+    index = index - 1
+    rearranged_matrix = matrix[:, :, index, :]
+    rearranged_matrix = rearranged_matrix[:, :, :, index]
+    return rearranged_matrix
 
 if __name__ == '__main__':
     cm_data = utils.load_cmdata2d('PCC', 'joint', 'sub1ex1')
