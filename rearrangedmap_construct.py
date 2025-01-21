@@ -11,7 +11,54 @@ import numpy as np
 
 import utils
 
-def generate_rearrangedcm(cm_data, method, imshow=False):
+def global_padding(matrix, width=81, verbose=True):
+    """
+    Pads a 2D or 4D matrix to the specified width while keeping the original data centered.
+
+    Parameters:
+        matrix (np.ndarray): The input matrix to be padded.
+        width (int): The target width/height for padding.
+        verbose (bool): If True, prints the original and padded shapes.
+
+    Returns:
+        np.ndarray: The padded matrix with the specified width.
+    """
+    if len(matrix.shape) == 2:
+        width_input, _ = matrix.shape
+        total_padding = width - width_input
+        pad_before = total_padding // 2
+        pad_after = total_padding - pad_before
+
+        padded_matrix = np.pad(
+            matrix,
+            pad_width=((pad_before, pad_after), (pad_before, pad_after)),
+            mode='constant',
+            constant_values=0
+        )
+
+    elif len(matrix.shape) == 4:
+        _, _, width_input, _ = matrix.shape
+        total_padding = width - width_input
+        pad_before = total_padding // 2
+        pad_after = total_padding - pad_before
+
+        padded_matrix = np.pad(
+            matrix,
+            pad_width=((0, 0), (0, 0), (pad_before, pad_after), (pad_before, pad_after)),
+            mode='constant',
+            constant_values=0
+        )
+
+    else:
+        raise ValueError("Input matrix must be either 2D or 4D.")
+
+    if verbose:
+        print("Original shape:", matrix.shape)
+        print("Padded shape:", padded_matrix.shape)
+
+    return padded_matrix
+
+def generate_rearrangedcm(cm_data, method, padding=True, imshow=True):
     """
     Generate a rearranged confusion matrix based on the specified method.
 
@@ -37,6 +84,9 @@ def generate_rearrangedcm(cm_data, method, imshow=False):
     else:
         raise ValueError(f"Invalid rearranged method: {method}")
 
+    if padding:
+        sorted_matrix = global_padding(sorted_matrix)
+        
     if imshow:
         utils.draw_projection(sorted_matrix[0])
 

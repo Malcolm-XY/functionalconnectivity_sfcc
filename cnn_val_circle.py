@@ -30,6 +30,7 @@ def cnn_validation_circle(model, method, feature, subject_range, experiment_rang
                 fcdata = covmap_construct.generate_sfcc(cmdata, imshow=True)
             elif method == 'cm':
                 fcdata = cmdata
+                fcdata = rearrangedmap_construct.global_padding(fcdata)
             elif method == 'mx':
                 fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
             elif method == 'vc':
@@ -64,6 +65,8 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
                 fcdata = covmap_construct.generate_sfcc(cmdata, imshow=True)
             elif method == 'cm':
                 fcdata = cmdata
+                fcdata = rearrangedmap_construct.global_padding(fcdata)
+                utils.draw_projection(fcdata[0][0])
             elif method == 'mx':
                 fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
             elif method == 'vc':
@@ -193,31 +196,42 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=30):
         shutdown_with_countdown(countdown_seconds)
 
 # %% Usage; training settings
-from Models import models, models_multiscale
+from models import models, models_multiscale
 
-model = models.CNN2DModel_()
+model = models.CNN2DModel_3layers_maxpool()
 # model = models_multiscale.MultiScaleCNN()
 # model = models_multiscale.SimpleMultiScaleCNN()
 
 # %% validation 1
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(6, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
 # Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'Results')
+output_dir = os.path.join(os.getcwd(), 'results')
 filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2
-fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(6, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
 # Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'Results')
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
+
+# %% validation 2
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 16), range(1, 4)
+
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
 filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 

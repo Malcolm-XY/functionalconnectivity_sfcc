@@ -16,17 +16,17 @@ class CNN2DModel_3layers_avgpool(nn.Module):
         # 第一层卷积 + BatchNorm + 池化
         self.conv1 = nn.Conv2d(in_channels=channels, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(64)
-        self.pool1 = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.pool1 = nn.AvgPool2d(kernel_size=4, stride=4)
 
         # 第二层卷积 + BatchNorm + 池化
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(128)
-        self.pool2 = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.pool2 = nn.AvgPool2d(kernel_size=4, stride=4)
 
         # 第三层卷积 + BatchNorm + 池化
         self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1)
         self.bn3 = nn.BatchNorm2d(256)
-        self.pool3 = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.pool3 = nn.AvgPool2d(kernel_size=4, stride=4)
 
         # 全连接层
         self.fc1 = nn.Linear(in_features=256, out_features=128)
@@ -53,17 +53,17 @@ class CNN2DModel_3layers_maxpool(nn.Module):
         # 第一层卷积 + BatchNorm + 池化
         self.conv1 = nn.Conv2d(in_channels=channels, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(64)
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.pool1 = nn.MaxPool2d(kernel_size=4, stride=4)
 
         # 第二层卷积 + BatchNorm + 池化
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(128)
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.pool2 = nn.MaxPool2d(kernel_size=4, stride=4)
 
         # 第三层卷积 + BatchNorm + 池化
         self.conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1)
         self.bn3 = nn.BatchNorm2d(256)
-        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.pool3 = nn.MaxPool2d(kernel_size=4, stride=4)
 
         # 全连接层
         self.fc1 = nn.Linear(in_features=256, out_features=128)
