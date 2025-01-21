@@ -192,14 +192,15 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=30):
     if shutdown:
         shutdown_with_countdown(countdown_seconds)
 
-# %% Usage
+# %% Usage; training settings
 from Models import models, models_multiscale
 
-# training settings
 model = models.CNN2DModel_()
 # model = models_multiscale.MultiScaleCNN()
 # model = models_multiscale.SimpleMultiScaleCNN()
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
+
+# %% validation 1
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(6, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -209,5 +210,16 @@ output_dir = os.path.join(os.getcwd(), 'Results')
 filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
-# End program actions
+# %% validation 2
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(6, 16), range(1, 4)
+
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'Results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
+
+# %% End program actions
 end_program_actions(play_sound=True, shutdown=True)
