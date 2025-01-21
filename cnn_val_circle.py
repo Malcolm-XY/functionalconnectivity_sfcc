@@ -199,7 +199,7 @@ from Models import models, models_multiscale
 model = models.CNN2DModel_()
 # model = models_multiscale.MultiScaleCNN()
 # model = models_multiscale.SimpleMultiScaleCNN()
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 6), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
