@@ -9,6 +9,132 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class MultiScaleCNN_2layers_avgpool(nn.Module):
+    def __init__(self, in_channels=3, num_classes=3):
+        super(MultiScaleCNN_2layers_avgpool, self).__init__()
+
+        # Branch 1: Small-scale features
+        self.branch1_conv1 = nn.Conv2d(in_channels, 32, kernel_size=3, stride=1, padding=1)
+        self.branch1_bn1 = nn.BatchNorm2d(32)
+        self.branch1_pool1 = nn.AvgPool2d(kernel_size=3, stride=3)
+
+        self.branch1_conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.branch1_bn2 = nn.BatchNorm2d(64)
+        self.branch1_pool2 = nn.AvgPool2d(kernel_size=3, stride=3)
+
+        # Branch 2: Medium-scale features
+        self.branch2_conv1 = nn.Conv2d(in_channels, 32, kernel_size=5, stride=1, padding=2)
+        self.branch2_bn1 = nn.BatchNorm2d(32)
+        self.branch2_pool1 = nn.AvgPool2d(kernel_size=3, stride=3)
+
+        self.branch2_conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2)
+        self.branch2_bn2 = nn.BatchNorm2d(64)
+        self.branch2_pool2 = nn.AvgPool2d(kernel_size=3, stride=3)
+
+        # Branch 3: Large-scale features
+        self.branch3_conv1 = nn.Conv2d(in_channels, 32, kernel_size=7, stride=1, padding=3)
+        self.branch3_bn1 = nn.BatchNorm2d(32)
+        self.branch3_pool1 = nn.AvgPool2d(kernel_size=3, stride=3)
+
+        self.branch3_conv2 = nn.Conv2d(32, 64, kernel_size=7, stride=1, padding=3)
+        self.branch3_bn2 = nn.BatchNorm2d(64)
+        self.branch3_pool2 = nn.AvgPool2d(kernel_size=3, stride=3)
+
+        # Fusion features
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc1 = nn.Linear(64 * 3, 128)  # Concatenate three branches
+        self.dropout1 = nn.Dropout(p=0.25)
+        self.fc2 = nn.Linear(128, num_classes)
+        self.dropout2 = nn.Dropout(p=0.25)
+
+    def forward(self, x):
+        # Branch 1
+        x1 = self.branch1_pool1(F.relu(self.branch1_bn1(self.branch1_conv1(x))))
+        x1 = self.branch1_pool2(F.relu(self.branch1_bn2(self.branch1_conv2(x1))))
+        x1 = self.global_pool(x1)
+        x1 = torch.flatten(x1, 1)
+
+        # Branch 2
+        x2 = self.branch2_pool1(F.relu(self.branch2_bn1(self.branch2_conv1(x))))
+        x2 = self.branch2_pool2(F.relu(self.branch2_bn2(self.branch2_conv2(x2))))
+        x2 = self.global_pool(x2)
+        x2 = torch.flatten(x2, 1)
+
+        # Branch 3
+        x3 = self.branch3_pool1(F.relu(self.branch3_bn1(self.branch3_conv1(x))))
+        x3 = self.branch3_pool2(F.relu(self.branch3_bn2(self.branch3_conv2(x3))))
+        x3 = self.global_pool(x3)
+        x3 = torch.flatten(x3, 1)
+
+        # Fusion
+        x = torch.cat((x1, x2, x3), dim=1)
+        x = self.dropout1(F.relu(self.fc1(x)))
+        x = self.dropout2(self.fc2(x))
+        return x
+
+class MultiScaleCNN_2layers_maxpool(nn.Module):
+    def __init__(self, in_channels=3, num_classes=3):
+        super(MultiScaleCNN_2layers_avgpool, self).__init__()
+
+        # Branch 1: Small-scale features
+        self.branch1_conv1 = nn.Conv2d(in_channels, 32, kernel_size=3, stride=1, padding=1)
+        self.branch1_bn1 = nn.BatchNorm2d(32)
+        self.branch1_pool1 = nn.MaxPool2d(kernel_size=3, stride=3)
+
+        self.branch1_conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.branch1_bn2 = nn.BatchNorm2d(64)
+        self.branch1_pool2 = nn.MaxPool2d(kernel_size=3, stride=3)
+
+        # Branch 2: Medium-scale features
+        self.branch2_conv1 = nn.Conv2d(in_channels, 32, kernel_size=5, stride=1, padding=2)
+        self.branch2_bn1 = nn.BatchNorm2d(32)
+        self.branch2_pool1 = nn.MaxPool2d(kernel_size=3, stride=3)
+
+        self.branch2_conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=1, padding=2)
+        self.branch2_bn2 = nn.BatchNorm2d(64)
+        self.branch2_pool2 = nn.MaxPool2d(kernel_size=3, stride=3)
+
+        # Branch 3: Large-scale features
+        self.branch3_conv1 = nn.Conv2d(in_channels, 32, kernel_size=7, stride=1, padding=3)
+        self.branch3_bn1 = nn.BatchNorm2d(32)
+        self.branch3_pool1 = nn.MaxPool2d(kernel_size=3, stride=3)
+
+        self.branch3_conv2 = nn.Conv2d(32, 64, kernel_size=7, stride=1, padding=3)
+        self.branch3_bn2 = nn.BatchNorm2d(64)
+        self.branch3_pool2 = nn.MaxPool2d(kernel_size=3, stride=3)
+
+        # Fusion features
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc1 = nn.Linear(64 * 3, 128)  # Concatenate three branches
+        self.dropout1 = nn.Dropout(p=0.25)
+        self.fc2 = nn.Linear(128, num_classes)
+        self.dropout2 = nn.Dropout(p=0.25)
+
+    def forward(self, x):
+        # Branch 1
+        x1 = self.branch1_pool1(F.relu(self.branch1_bn1(self.branch1_conv1(x))))
+        x1 = self.branch1_pool2(F.relu(self.branch1_bn2(self.branch1_conv2(x1))))
+        x1 = self.global_pool(x1)
+        x1 = torch.flatten(x1, 1)
+
+        # Branch 2
+        x2 = self.branch2_pool1(F.relu(self.branch2_bn1(self.branch2_conv1(x))))
+        x2 = self.branch2_pool2(F.relu(self.branch2_bn2(self.branch2_conv2(x2))))
+        x2 = self.global_pool(x2)
+        x2 = torch.flatten(x2, 1)
+
+        # Branch 3
+        x3 = self.branch3_pool1(F.relu(self.branch3_bn1(self.branch3_conv1(x))))
+        x3 = self.branch3_pool2(F.relu(self.branch3_bn2(self.branch3_conv2(x3))))
+        x3 = self.global_pool(x3)
+        x3 = torch.flatten(x3, 1)
+
+        # Fusion
+        x = torch.cat((x1, x2, x3), dim=1)
+        x = self.dropout1(F.relu(self.fc1(x)))
+        x = self.dropout2(self.fc2(x))
+        return x
+
 class MultiScaleCNN_4layers_avgpool(nn.Module):
     def __init__(self, in_channels=3, num_classes=3):
         super(MultiScaleCNN_4layers_avgpool, self).__init__()
