@@ -214,19 +214,8 @@ model = models.CNN2DModel_3layers_avgpool()
 # filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 # save_results_to_xlsx_append(results, output_dir, filename)
 
-# %% validation 2
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 16), range(1, 4)
-
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
-
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
-
 # # %% validation 2
-# fcnetwork, feature, subject_range, experiment_range = 'vc', 'PLV', range(1, 16), range(1, 4)
+# fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 16), range(1, 4)
 
 # # trainning and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -236,5 +225,16 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 # save_results_to_xlsx_append(results, output_dir, filename)
 
+# %% validation 2
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PLV', range(1, 16), range(1, 4)
+
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
+
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=False)
+end_program_actions(play_sound=True, shutdown=True)
