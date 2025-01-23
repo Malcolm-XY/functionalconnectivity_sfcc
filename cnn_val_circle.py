@@ -237,4 +237,4 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=False)
+end_program_actions(play_sound=True, shutdown=True)
