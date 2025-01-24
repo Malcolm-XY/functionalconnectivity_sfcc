@@ -201,7 +201,7 @@ from models import models #, models_multiscale
 model = models.CNN2DModel_3layers_avgpool()
 
 # %% validation 1
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(1, 6), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -212,7 +212,7 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 6), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
