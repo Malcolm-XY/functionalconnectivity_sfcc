@@ -198,7 +198,7 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
 # %% Usage; training settings
 from models import models #, models_multiscale
 
-model = models.CNN2DModel_3layers_avgpool()
+model = models.CNN2DModel_3layers_maxpool()
 
 # %% validation 1
 fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(1, 16), range(1, 4)
