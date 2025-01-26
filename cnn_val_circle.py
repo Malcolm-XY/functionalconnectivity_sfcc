@@ -201,7 +201,7 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(1, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -212,7 +212,7 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -223,7 +223,7 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2
-fcnetwork, feature, subject_range, experiment_range = 'vc', 'PLV', range(1, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -234,4 +234,4 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=False)
+end_program_actions(play_sound=True, shutdown=True, countdown_seconds=30)
