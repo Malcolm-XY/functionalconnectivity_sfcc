@@ -73,22 +73,14 @@ def generate_rearrangedcm(cm_data, method, padding=True, imshow=True):
     Raises:
         ValueError: If an invalid rearrangement method is specified.
     """
-    if method == 'MX':
-        # Implement logic for 'MX' rearrangement
-        rearranged_indices = get_rearrangedindex(method)
-        sorted_matrix = reshape_and_sort_MX(cm_data, rearranged_indices)
-    elif method == 'VC':
-        # Implement logic for 'VC' rearrangement
-        rearranged_indices = get_rearrangedindex(method)
-        sorted_matrix = reshape_and_sort_VC(cm_data, rearranged_indices)
-    else:
-        raise ValueError(f"Invalid rearranged method: {method}")
+    rearranged_indices = get_rearrangedindex(method)
+    sorted_matrix = reshape_and_sort(cm_data, rearranged_indices)
 
     if padding:
         sorted_matrix = global_padding(sorted_matrix)
         
     if imshow:
-        utils.draw_projection(sorted_matrix[0])
+        utils.draw_projection(np.mean(sorted_matrix, axis=0))
 
     return sorted_matrix
     
@@ -101,54 +93,68 @@ def get_rearrangedindex(method):
         path_txt = os.path.join(path_current, 'rearrangement', 'VCindex.txt')
     else: raise ValueError('Invalid rearranged method!')
     
-    index = read_rearrangedindex(path_txt) -1
+    index = read_rearrangedindex(path_txt)
     return index
 
 def read_rearrangedindex(path_txt):
     index = pandas.read_csv(path_txt, sep='\t', header=None).to_numpy().flatten()
     return index
 
-def reshape_and_sort_MX(matrix, custom_index):
-    """
-    将输入矩阵从 samples x channels x n x n 转换为 samples x channels x n^2，
-    使用自定义索引对 n^2 维度重新排序后恢复到 samples x channels x n x n。
-
-    参数:
-        matrix: numpy.ndarray, 形状为 (samples, channels, n, n)
-        custom_index: numpy.ndarray, 自定义排序索引，形状为 (n^2,)
-
-    返回:
-        reshaped_matrix: numpy.ndarray, 重新排序后的矩阵，形状为 (samples, channels, n, n)
-    """
-    samples, channels, n, _ = matrix.shape
-    n_squared = n * n
-
-    # 检查自定义索引的合法性
-    if custom_index.shape[0] != n_squared:
-        raise ValueError("自定义索引的长度必须为 n^2")
-    if set(custom_index) != set(range(n_squared)):
-        raise ValueError("自定义索引必须包含 0 到 n^2-1 的所有值")
-
-    # Step 1: 将矩阵展平到 samples x channels x n^2
-    flattened = matrix.reshape(samples, channels, n_squared)
-
-    # Step 2: 使用自定义索引对 n^2 维度排序
-    sorted_flattened = flattened[:, :, custom_index]
-
-    # Step 3: 恢复到原始形状 samples x channels x n x n
-    reshaped_matrix = sorted_flattened.reshape(samples, channels, n, n)
-
-    return reshaped_matrix
-
-def reshape_and_sort_VC(matrix, index):
-    index = index - 1
+def reshape_and_sort(matrix, index):
     rearranged_matrix = matrix[:, :, index, :]
     rearranged_matrix = rearranged_matrix[:, :, :, index]
     return rearranged_matrix
 
+def compute_sorted_global_avg(num_subjects, num_experiments=3, single=False):
+    """
+    Computes and sorts the global average of channel-wise connectivity data 
+    across subjects and experiments for different frequency bands (gamma, beta, alpha).
+    """
+    # num_subjects = 15  # Total number of subjects
+    # num_experiments = 3  # Total number of experiments per subject
+    
+    if single:
+        start_subject = num_subjects
+    else: start_subject = 1
+    
+    joint_averages = []  # Stores the joint average connectivity data for each experiment
+    
+    # Iterate through each subject and experiment
+    for subject_id in range(start_subject, num_subjects + 1):
+        for experiment_id in range(1, num_experiments + 1):
+            # Load connectivity data for different frequency bands
+            gamma_data = utils.load_cmdata2d('PCC', 'gamma', f'sub{subject_id}ex{experiment_id}')
+            beta_data = utils.load_cmdata2d('PCC', 'beta', f'sub{subject_id}ex{experiment_id}')
+            alpha_data = utils.load_cmdata2d('PCC', 'alpha', f'sub{subject_id}ex{experiment_id}')
+            
+            # Compute the mean connectivity for each frequency band
+            gamma_avg = np.mean(gamma_data, axis=0)
+            beta_avg = np.mean(beta_data, axis=0)
+            alpha_avg = np.mean(alpha_data, axis=0)
+            
+            # Compute the joint average of all frequency bands
+            joint_avg = (gamma_avg + beta_avg + alpha_avg) / 3
+            joint_averages.append(joint_avg)
+    
+    # Compute the global average across all subjects and experiments
+    global_joint_avg = np.mean(joint_averages, axis=0)
+    
+    # Visualize the projection of the global average
+    utils.draw_projection(global_joint_avg)
+    
+    # Compute the global average across channels and sort the values
+    global_channel_avg = np.mean(global_joint_avg, axis=0)
+    sorted_indices = np.argsort(global_channel_avg)[::-1]
+
+    return sorted_indices
+
 if __name__ == '__main__':
-    cm_data = utils.load_cmdata2d('PCC', 'joint', 'sub1ex1')
-    utils.draw_projection(cm_data[0])
+    # mx_index = compute_sorted_global_avg(15)
+    
+    feature_sample, freq_sample, experiment_sample = 'PCC', 'joint',  'sub1ex1'
+    
+    cm_data = utils.load_cmdata2d(feature_sample, freq_sample, experiment_sample)
 
     rearranged_MX_cm = generate_rearrangedcm(cm_data, 'MX', imshow=True)
     rearranged_VC_cm = generate_rearrangedcm(cm_data, 'VC', imshow=True)
+    

@@ -52,17 +52,17 @@ def load_cmdata2d(selected_feature, selected_band, experiment, imshow=False):
         cmdata_beta = cmdata['beta']
         cmdata_gamma = cmdata['gamma']
         if selected_band == 'alpha':
-            if imshow: draw_projection(cmdata_alpha[0])
+            if imshow: draw_projection(numpy.mean(cmdata_alpha, axis=0))
             return cmdata_alpha
         elif selected_band == 'beta':
-            if imshow: draw_projection(cmdata_beta[0])
+            if imshow: draw_projection(numpy.mean(cmdata_beta, axis=0))
             return cmdata_beta
         elif selected_band == 'gamma':
-            if imshow: draw_projection(cmdata_gamma[0])
+            if imshow: draw_projection(numpy.mean(cmdata_gamma, axis=0))
             return cmdata_gamma
         elif selected_band == 'joint':
             cmdata = numpy.stack((cmdata_alpha, cmdata_beta, cmdata_gamma), axis=1)
-            if imshow: draw_projection(cmdata[0])
+            if imshow: draw_projection(numpy.mean(cmdata, axis=0))
             return cmdata
         else:
             raise ValueError(f"Invalid band selection: {selected_band}")
@@ -73,17 +73,17 @@ def load_cmdata2d(selected_feature, selected_band, experiment, imshow=False):
         cmdata_beta = cmdata['beta']
         cmdata_gamma = cmdata['gamma']
         if selected_band == 'alpha':
-            if imshow: draw_projection(cmdata_alpha[0])
+            if imshow: draw_projection(numpy.mean(cmdata_alpha, axis=0))
             return cmdata_alpha
         elif selected_band == 'beta':
-            if imshow: draw_projection(cmdata_beta[0])
+            if imshow: draw_projection(numpy.mean(cmdata_beta, axis=0))
             return cmdata_beta
         elif selected_band == 'gamma':
-            if imshow: draw_projection(cmdata_gamma[0])
+            if imshow: draw_projection(numpy.mean(cmdata_gamma, axis=0))
             return cmdata_gamma
         elif selected_band == 'joint':
             cmdata = numpy.stack((cmdata_alpha, cmdata_beta, cmdata_gamma), axis=1)
-            if imshow: draw_projection(cmdata[0])
+            if imshow: draw_projection(numpy.mean(cmdata, axis=0))
             return cmdata
         else:
             raise ValueError(f"Invalid band selection: {selected_band}")
@@ -224,7 +224,12 @@ def draw_projection(sample_projection):
 
 # %% Example Usage
 if __name__ == '__main__':
-    cmdata1d_joint = load_cmdata1d('PLV', 'joint', 'sub1ex1')
-    cmdata1d_gamma = load_cmdata1d('PLV', 'gamma', 'sub1ex1')
-    cmdata2d_joint = load_cmdata2d('PLV', 'joint', 'sub1ex1')
-    cmdata2d_gamma = load_cmdata2d('PLV', 'gamma', 'sub1ex1')
+    feature_sample, freq_sample_1, freq_sample_2, experiment_sample = 'PCC', 'joint', 'gamma', 'sub1ex1'
+    
+    # vector
+    cmdata1d_gamma = load_cmdata1d(feature_sample, freq_sample_2, experiment_sample)    
+    cmdata1d_joint = load_cmdata1d(feature_sample, freq_sample_1, experiment_sample)
+
+    # matrix
+    cmdata2d_gamma = load_cmdata2d(feature_sample, freq_sample_2, experiment_sample, imshow=True)    
+    cmdata2d_joint = load_cmdata2d(feature_sample, freq_sample_1, experiment_sample, imshow=True)
