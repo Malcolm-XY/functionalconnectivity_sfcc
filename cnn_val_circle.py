@@ -198,43 +198,51 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
 # %% Usage; training settings
 from models import models #, models_multiscale
 
+<<<<<<< Updated upstream
 model = models.MSCNN_2layers_adaptive_avgpool_2()
+=======
+model = models.MSCNN_2layers_adaptive_maxpool_3()
+>>>>>>> Stashed changes
 
-# # %% validation 1; sfcc
-# fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
+# %% validation 1; sfcc
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
 
-# # trainning and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
-# # %% validation 2; cm
-# fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 16), range(1, 4)
+# %% validation 2; cm
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 16), range(1, 4)
 
-# # trainning and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
-# # %% validation 3; vc
-# fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 16), range(1, 4)
+# %% validation 3; vc
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 16), range(1, 4)
 
-# # trainning and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
+<<<<<<< Updated upstream
 fcnetwork, feature, subject_range, experiment_range = 'mx', 'PCC', range(1, 2), range(1, 2)
+=======
+fcnetwork, feature, subject_range, experiment_range = 'mx', 'PCC', range(1, 16), range(1, 4)
+>>>>>>> Stashed changes
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
