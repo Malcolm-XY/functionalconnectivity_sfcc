@@ -97,8 +97,6 @@ class MSCNN_2layers_adaptive_maxpool_3(nn.Module):
         self.branch1_conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.branch1_bn2 = nn.BatchNorm2d(64)
         self.branch1_pool2 = nn.AdaptiveMaxPool2d((1, 1))
-        #
-        self.branch1_fc = nn.Linear(in_features=64, out_features=32)
 
         # 分支2
         self.branch2_conv1 = nn.Conv2d(in_channels=channels, out_channels=32, kernel_size=5, stride=1, padding=1)
@@ -107,8 +105,6 @@ class MSCNN_2layers_adaptive_maxpool_3(nn.Module):
         self.branch2_conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, stride=1, padding=1)
         self.branch2_bn2 = nn.BatchNorm2d(64)
         self.branch2_pool2 = nn.AdaptiveMaxPool2d((1, 1))
-        #
-        self.branch2_fc = nn.Linear(in_features=64, out_features=32)
 
         # 分支3
         self.branch3_conv1 = nn.Conv2d(in_channels=channels, out_channels=32, kernel_size=7, stride=1, padding=1)
@@ -117,8 +113,6 @@ class MSCNN_2layers_adaptive_maxpool_3(nn.Module):
         self.branch3_conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7, stride=1, padding=1)
         self.branch3_bn2 = nn.BatchNorm2d(64)
         self.branch3_pool2 = nn.AdaptiveMaxPool2d((1, 1))
-        #
-        self.branch3_fc = nn.Linear(in_features=64, out_features=32)
 
         # 全连接层，用于整合三个分支的输出
         self.fc1 = nn.Linear(in_features=64 * 3, out_features=128)
@@ -131,29 +125,29 @@ class MSCNN_2layers_adaptive_maxpool_3(nn.Module):
         x1 = F.relu(self.branch1_bn1(self.branch1_conv1(x)))
         x1 = self.branch1_pool1(x1)
         x1 = F.relu(self.branch1_bn2(self.branch1_conv2(x1)))
-        x1 = self.branch1_pool2(x1)
+        x1 = self.branch1_pool2(x1)  # 输出 (batch_size, 64, 1, 1)
 
         # 分支2
         x2 = F.relu(self.branch2_bn1(self.branch2_conv1(x)))
         x2 = self.branch2_pool1(x2)
         x2 = F.relu(self.branch2_bn2(self.branch2_conv2(x2)))
-        x2 = self.branch2_pool2(x2)
+        x2 = self.branch2_pool2(x2)  # 输出 (batch_size, 64, 1, 1)
 
         # 分支3
         x3 = F.relu(self.branch3_bn1(self.branch3_conv1(x)))
         x3 = self.branch3_pool1(x3)
         x3 = F.relu(self.branch3_bn2(self.branch3_conv2(x3)))
-        x3 = self.branch3_pool2(x3)
+        x3 = self.branch3_pool2(x3)  # 输出 (batch_size, 64, 1, 1)
 
         # 拼接三个分支的输出
-        x_concat = torch.cat((x1, x2, x3), dim=2)
-        
+        x_concat = torch.cat((x1, x2, x3), dim=1)  # 输出 (batch_size, 192, 1, 1)
+
         # 展平层
-        x = x.view(x_concat.size(0), -1)  
-        x = F.relu(self.fc1(x))
+        x = x_concat.view(x_concat.size(0), -1)  # 展平为 (batch_size, 192)
+        x = F.relu(self.fc1(x))  # 输入到 fc1，确保 fc1 的 in_features 为 192
         
         # 最终分类        
-        output = self.fc2(x)
+        output = self.fc2(x)  # 输入到 fc2
         return output
 
 # %% adaptive
