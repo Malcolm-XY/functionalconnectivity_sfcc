@@ -198,7 +198,7 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
 # %% Usage; training settings
 from models import models #, models_multiscale
 
-model = models.CNN_2layers_adaptive_maxpool_3()
+model = models.MSCNN_2layers_adaptive_avgpool_2()
 
 # # %% validation 1; sfcc
 # fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
@@ -234,7 +234,7 @@ model = models.CNN_2layers_adaptive_maxpool_3()
 # save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
-fcnetwork, feature, subject_range, experiment_range = 'mx', 'PLV', range(1, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'mx', 'PCC', range(1, 2), range(1, 2)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
