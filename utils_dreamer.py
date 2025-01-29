@@ -127,15 +127,33 @@ if __name__ == '__main__':
     score_dominance = 0
     score_valence = 0
     index = 0
+    eeg_all = []
     for data in mat_data['DREAMER']['Data']:
         index += 1
         score_arousal += data['ScoreArousal']
         score_dominance += data['ScoreDominance']
         score_valence += data['ScoreValence']
-    
+        eeg_all.append(data['EEG']['stimuli'])
+        
     labels = [1, 3, 5]
     score_arousal_labels = normalize_to_labels(score_arousal, labels)
     score_dominance_labels = normalize_to_labels(score_dominance, labels)
     score_valence_labels = normalize_to_labels(score_valence, labels)
     
     # %% data
+    eeg_sample = eeg_all[0]
+    labels_arousal = []
+    labels_dominance = []
+    labels_valence = []
+    for eeg_trial in range(0,len(eeg_sample)):     
+        label_container = np.ones(len(eeg_sample[eeg_trial]))
+        
+        label_arousal = label_container * score_arousal_labels[eeg_trial]
+        label_dominance = label_container * score_dominance_labels[eeg_trial]
+        label_valence = label_container * score_valence_labels[eeg_trial]
+        
+        labels_arousal = np.concatenate((labels_arousal, label_arousal))
+        labels_dominance = np.concatenate((labels_dominance, label_dominance))
+        labels_valence = np.concatenate((labels_valence, label_valence))
+        
+    labels_arousal = labels_arousal[::200]
