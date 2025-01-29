@@ -201,7 +201,7 @@ from models import models #, models_multiscale
 model = models.MSCNN_2_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(2, 3), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(3, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -212,7 +212,7 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(2, 3), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(3, 16), range(1, 4)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
