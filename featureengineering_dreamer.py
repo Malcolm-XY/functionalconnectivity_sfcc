@@ -200,4 +200,4 @@ if __name__ == "__main__":
     # eeg_sample = eeg[0]
     # filtered_eeg_sample = filter_eeg(eeg_sample)
     
-    filter_eeg_and_save_circle(_range=range(1,24))
+    filter_eeg_and_save_circle()
