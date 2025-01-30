@@ -35,7 +35,32 @@ def simplify_mat_structure(data):
     else:  # 其他类型直接返回
         return data
 
-def read_mat_(path_file, simplify=True):
+def get_dreamer():
+    path_current = os.getcwd()
+    path_parent = os.path.dirname(path_current)
+    path_data = os.path.join(path_parent, 'data', 'DREAMER', 'DREAMER.mat')
+
+    # get mat
+    dreamer = read_mat(path_data)
+    dreamer = dreamer["DREAMER"]
+    dreamer_data = dreamer["Data"]
+    
+    # get eeg
+    eeg_dic = []
+    for trial_data in dreamer_data:
+        eeg_list = trial_data["EEG"]["stimuli"]
+
+        for eeg in eeg_list:
+            eeg_flattened = np.vstack(eeg)
+    
+        eeg_dic.append(eeg_flattened)
+    
+    # get electrodes
+    electrode_list = dreamer["EEG_Electrodes"]
+    
+    return dreamer, eeg_dic, electrode_list
+
+def read_mat(path_file, simplify=True):
     """
     读取 MATLAB 的 .mat 文件。
     - 自动支持 HDF5 格式和非 HDF5 格式。
@@ -90,37 +115,12 @@ def normalize_to_labels(array, labels):
     # Map indices to corresponding labels
     return np.array([labels[i - 1] for i in discrete_labels])
 
-def get_labels():
+def get_labels(samplingrate=128):
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
     path_data = os.path.join(path_parent, 'data', 'DREAMER', 'DREAMER.mat')
 
-    mat_data = read_mat_(path_data)
-    
-    # %% labels
-    score_arousal = 0
-    score_dominance = 0
-    score_valence = 0
-    index = 0
-    for data in mat_data['DREAMER']['Data']:
-        index += 1
-        score_arousal += data['ScoreArousal']
-        score_dominance += data['ScoreDominance']
-        score_valence += data['ScoreValence']
-    
-    labels = [1, 3, 5]
-    score_arousal_labels = normalize_to_labels(score_arousal, labels)
-    score_dominance_labels = normalize_to_labels(score_dominance, labels)
-    score_valence_labels = normalize_to_labels(score_valence, labels)
-    
-    return score_arousal_labels, score_dominance_labels, score_valence_labels
-
-if __name__ == '__main__':
-    path_current = os.getcwd()
-    path_parent = os.path.dirname(path_current)
-    path_data = os.path.join(path_parent, 'data', 'DREAMER', 'DREAMER.mat')
-
-    mat_data = read_mat_(path_data)
+    mat_data = read_mat(path_data)
     
     # %% labels
     score_arousal = 0
@@ -156,4 +156,15 @@ if __name__ == '__main__':
         labels_dominance = np.concatenate((labels_dominance, label_dominance))
         labels_valence = np.concatenate((labels_valence, label_valence))
         
-    labels_arousal = labels_arousal[::200]
+    labels_arousal = labels_arousal[::samplingrate]
+    labels_dominance = labels_dominance[::samplingrate]
+    labels_valence = labels_valence[::samplingrate]
+    
+    return labels_arousal, labels_dominance, labels_valence
+
+if __name__ == '__main__':
+    # labels
+    dreamer, dreamerr_eeg, electrode_list = get_dreamer()
+    # eeg data
+    labels_arousal, labels_dominance, labels_valence = get_labels()
+    
