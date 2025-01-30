@@ -89,7 +89,7 @@ def filter_eeg_and_save(subject, verbose=True):
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
     path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'Filtered_EEG')
-    os.makedirs(path_folder, exist_ok=True)  # 确保目标文件夹存在
+    os.makedirs(path_folder, exist_ok=True)
     
     # 调用 filter_eeg 函数
     filtered_eeg_dict = filter_eeg(eeg, verbose=verbose)
@@ -103,7 +103,7 @@ def filter_eeg_and_save(subject, verbose=True):
     
     return filtered_eeg_dict
     
-def filter_eeg_and_save_circle(_range=range(0,24)):
+def filter_eeg_and_save_circle(_range=range(0,23)):
     for subhject in _range:
         print(subhject)
         filter_eeg_and_save(subhject)
