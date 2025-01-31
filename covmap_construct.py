@@ -3,6 +3,8 @@ import numpy
 import pandas
 
 import utils
+import utils_dreamer
+import featureengineering_dreamer
 
 def generate_sfcc(cm_data, imshow=False):
     """
@@ -60,6 +62,21 @@ def get_distribution():
     path_smap = os.path.join(path_current, 'mapping', 'smap.txt')
     # path_channel order
     path_order = os.path.join(path_current, 'mapping', 'biosemi62_64_channels_original_distribution.txt')
+    
+    # read smap, channel order from .txt
+    smap, order = pandas.read_csv(path_smap, sep='\t', header=None), pandas.read_csv(path_order, sep='\t')
+    smap, order = numpy.array(smap), numpy.array(order['channel'])
+    
+    return smap, order
+
+def get_distribution_dreamer():
+    # path
+    path_current = os.getcwd()
+   
+    # path_smap
+    path_smap = os.path.join(path_current, 'mapping', 'smap_dreamer.txt')
+    # path_channel order
+    path_order = os.path.join(path_current, 'mapping', 'biosemi62_14_channels_original_distribution.txt')
     
     # read smap, channel order from .txt
     smap, order = pandas.read_csv(path_smap, sep='\t', header=None), pandas.read_csv(path_order, sep='\t')
@@ -179,28 +196,34 @@ def cm2sfcc(cm_data, covmap_num):
     
     return sfcc_temp
 
-# # %% Example Usage
-# # # 示例变量
-# # smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
-# # order = ["ch1", "ch2", "ch3", "ch4"]
-# # cm_data = numpy.random.rand(100, 4, 4)  # 示例 cm 数据
+# %% Example Usage
+if __name__ == "__main__":
+    # # %% 示例变量
+    # smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
+    # order = ["ch1", "ch2", "ch3", "ch4"]
+    # cm_data = numpy.random.rand(100, 4, 4)  # 示例 cm 数据
+    
+    # # %% seed sample
+    # smap, order = get_distribution()
+    # cm_data = utils.load_cmdata2d('PCC', 'gamma', 'sub1ex1')
+    
+    # # 文件1：生成 lmap 和 covmap
+    # lmap, covmap = generate_lmap_and_covmap(smap)
+    
+    # # 文件2：生成连接矩阵和向量
+    # CM, CV = generate_connectivity_matrix(order)
+    
+    # # 文件3：生成数值卷积图
+    # covmap_num = generate_covmap_num(covmap, CV)
+    
+    # # 文件4：生成灰度图
+    # sfcc = cm2sfcc(cm_data, covmap_num)
+    # utils.draw_projection(sfcc[0])
+    
+    # cm_data = utils.load_cmdata2d('PCC', 'joint', 'sub1ex1')
+    # utils.draw_projection(cm_data[0])
+    # sfcc = generate_sfcc(cm_data, imshow=True)
 
-# # smap, order = get_distribution()
-# # cm_data = utils.load_cmdata2d('PCC', 'gamma', 'sub1ex1')
-
-# # # 文件1：生成 lmap 和 covmap
-# # lmap, covmap = generate_lmap_and_covmap(smap)
-
-# # # 文件2：生成连接矩阵和向量
-# # CM, CV = generate_connectivity_matrix(order)
-
-# # # 文件3：生成数值卷积图
-# # covmap_num = generate_covmap_num(covmap, CV)
-
-# # # 文件4：生成灰度图
-# # sfcc = cm2sfcc(cm_data, covmap_num)
-# # draw_projection(sfcc[0])
-
-# cm_data = utils.load_cmdata2d('PCC', 'joint', 'sub1ex1')
-# utils.draw_projection(cm_data[0])
-# sfcc = generate_sfcc(cm_data, imshow=True)
+    # %% dreamer sample
+    smap, order = get_distribution_dreamer()
+    cm_data = featureengineering_dreamer.read_cms(subject=1, method="pcc")

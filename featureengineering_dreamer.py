@@ -7,59 +7,23 @@ Created on Thu Jan 30 17:25:38 2025
 
 import os
 import numpy
+import numpy as np
 import h5py
 import scipy
+import scipy.signal
+from scipy.signal import hilbert
 
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 import utils
 import utils_dreamer
 
 import mne
-import mne_connectivity
 from mne_connectivity import spectral_connectivity_time
 from mne_connectivity.viz import plot_connectivity_circle
 
 # %% filter eeg
-def read_filtered_eegdata(subject, freq_band="Joint"):
-    """
-    Read filtered EEG data for the specified experiment and frequency band.
-
-    Parameters:
-    experiment (str): Name of the experiment (e.g., subject or session).
-    freq_band (str): Frequency band to load ("alpha", "beta", "gamma", "delta", "theta", or "joint").
-                     Default is "Joint".
-
-    Returns:
-    mne.io.Raw | dict: Returns the MNE Raw object for a single band or a dictionary of Raw objects for "joint".
-
-    Raises:
-    ValueError: If the specified frequency band is not valid.
-    FileNotFoundError: If the expected file does not exist.
-    """
-    path_current = os.getcwd()
-    path_parent = os.path.dirname(path_current)
-    path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'Filtered_EEG')
-
-    try:
-        if freq_band in ["alpha", "beta", "gamma", "delta", "theta"]:
-            path_file = os.path.join(path_folder, f"sub{subject}_{freq_band.capitalize()}_eeg.fif")
-            filtered_eeg = mne.io.read_raw_fif(path_file, preload=True)
-            return filtered_eeg
-
-        elif freq_band.lower() == "joint":
-            filtered_eeg = {}
-            for band in ["Alpha", "Beta", "Gamma", "Delta", "Theta"]:
-                path_file = os.path.join(path_folder, f"sub{subject}_{band}_eeg.fif")
-                filtered_eeg[band.lower()] = mne.io.read_raw_fif(path_file, preload=True)
-            return filtered_eeg
-
-        else:
-            raise ValueError(f"Invalid frequency band: {freq_band}. Choose from 'alpha', 'beta', 'gamma', 'delta', 'theta', or 'joint'.")
-
-    except FileNotFoundError as e:
-        raise FileNotFoundError(f"File not found for subject '{subject}' and frequency band '{freq_band}'. Check the path and file existence.")
-
 def filter_eeg(eeg, freq=128, verbose=False):
     info = mne.create_info(ch_names=['Ch' + str(i) for i in range(eeg.shape[0])], sfreq=freq, ch_types='eeg')
     mneeeg = mne.io.RawArray(eeg, info)
@@ -108,22 +72,225 @@ def filter_eeg_and_save_circle(_range=range(0,23)):
         print(subhject)
         filter_eeg_and_save(subhject)
             
+def read_filtered_eegdata(subject, freq_band="Joint"):
+    """
+    Read filtered EEG data for the specified experiment and frequency band.
+
+    Parameters:
+    experiment (str): Name of the experiment (e.g., subject or session).
+    freq_band (str): Frequency band to load ("alpha", "beta", "gamma", "delta", "theta", or "joint").
+                     Default is "Joint".
+
+    Returns:
+    mne.io.Raw | dict: Returns the MNE Raw object for a single band or a dictionary of Raw objects for "joint".
+
+    Raises:
+    ValueError: If the specified frequency band is not valid.
+    FileNotFoundError: If the expected file does not exist.
+    """
+    path_current = os.getcwd()
+    path_parent = os.path.dirname(path_current)
+    path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'Filtered_EEG')
+
+    try:
+        if freq_band in ["alpha", "beta", "gamma", "delta", "theta"]:
+            path_file = os.path.join(path_folder, f"sub{subject}_{freq_band.capitalize()}_eeg.fif")
+            filtered_eeg = mne.io.read_raw_fif(path_file, preload=True)
+            return filtered_eeg
+
+        elif freq_band.lower() == "joint":
+            filtered_eeg = {}
+            for band in ["Alpha", "Beta", "Gamma", "Delta", "Theta"]:
+                path_file = os.path.join(path_folder, f"sub{subject}_{band}_eeg.fif")
+                filtered_eeg[band.lower()] = mne.io.read_raw_fif(path_file, preload=True)
+            return filtered_eeg
+
+        else:
+            raise ValueError(f"Invalid frequency band: {freq_band}. Choose from 'alpha', 'beta', 'gamma', 'delta', 'theta', or 'joint'.")
+
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"File not found for subject '{subject}' and frequency band '{freq_band}'. Check the path and file existence.")
+
 # %% feature engineering
-def compute_temporal_connectivity(subject, method, freq_band, 
-                                  samplingrate=128, window=1, overlap=0, 
-                                  verbose=True, visualization=True):
+def read_cms(subject, method):
+    path_current = os.getcwd()
+    path_parent = os.path.dirname(path_current)
+    
+    if method == "pcc":
+        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PCC')
+    elif method == "plv":
+        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PLV')
+
+    path_file = os.path.join(path_folder, f"sub{subject}.npy")
+    
+    cms_load = numpy.load(path_file, allow_pickle=True)
+    cms_load = cms_load.item()
+    
+    cms_alpha = cms_load["alpha"]
+    cms_beta = cms_load["beta"]
+    cms_gamma = cms_load["gamma"]
+    
+    utils.draw_projection(numpy.mean(cms_alpha, axis=0))
+    utils.draw_projection(numpy.mean(cms_beta, axis=0))
+    utils.draw_projection(numpy.mean(cms_gamma, axis=0))
+    
+    return cms_alpha, cms_beta, cms_gamma
+
+def compute_cms_and_save_circle(method, _range=range(0,23)):
+    path_current = os.getcwd()
+    path_parent = os.path.dirname(path_current)
+    if method == "pcc":
+        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PCC')
+    elif method == "plv":
+        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PLV')
+    
+    for subject in _range:
+        cms = compute_synchronization(subject + 1, method=method, freq_band="joint")
+        
+        path_file = os.path.join(path_folder, f"sub{subject+1}.npy")
+        numpy.save(path_file, numpy.array(cms))
+
+def compute_synchronization(subject, method, freq_band="joint", 
+                                     samplingrate=128, window=1, overlap=0, 
+                                     verbose=True, visualization=True):
+    """
+    Compute temporal synchronization metrics (PCC or PLV) for EEG data.
+    
+    Parameters:
+        subject: Subject data identifier.
+        method (str): Synchronization method, "pcc" for Pearson correlation, "plv" for Phase Locking Value.
+        freq_band (str): Frequency band to analyze.
+        samplingrate (int): Sampling rate of the EEG data in Hz.
+        window (float): Window size in seconds for segmenting EEG data.
+        overlap (float): Overlap fraction between consecutive windows (0 to 1).
+        verbose (bool): If True, prints progress.
+        visualization (bool): If True, displays computed matrices.
+    
+    Returns:
+        dict: Dictionary containing computed matrices for different frequency bands (if applicable).
+    """
     filtered_eeg = read_filtered_eegdata(subject, freq_band=freq_band)
     
-    if method == "joint":
+    compute_function = compute_corr_matrices if method == "pcc" else compute_plv_matrices
+    
+    if freq_band == "joint":
         eeg_alpha = filtered_eeg["alpha"].get_data()
         eeg_beta = filtered_eeg["beta"].get_data()
         eeg_gamma = filtered_eeg["gamma"].get_data()
-    elif method == "alpha":
-        eeg_alpha = filtered_eeg["alpha"].get_data()
+        
+        cms_alpha = compute_function(eeg_alpha, samplingrate, window=window, overlap=overlap, verbose=verbose)
+        cms_beta = compute_function(eeg_beta, samplingrate, window=window, overlap=overlap, verbose=verbose)
+        cms_gamma = compute_function(eeg_gamma, samplingrate, window=window, overlap=overlap, verbose=verbose)
+        
+        cms = {
+            "alpha": cms_alpha,
+            "beta": cms_beta,
+            "gamma": cms_gamma
+        }
+    else:
+        eeg = filtered_eeg.get_data()
+        cms = compute_function(eeg, samplingrate, window=window, overlap=overlap, verbose=verbose)
     
-    split_eeg = [eeg[i:i + samplingrate] for i in range(0, len(eeg), samplingrate)]
+    return cms
+
+def compute_corr_matrices(eeg_data, samplingrate, window=1, overlap=0, verbose=True, visualization=True):
+    """
+    Compute correlation matrices for EEG data using a sliding window approach.
     
-    ### **************
+    Parameters:
+        eeg_data (numpy.ndarray): EEG data with shape (channels, time_samples).
+        samplingrate (int): Sampling rate of the EEG data in Hz.
+        window (float): Window size in seconds for segmenting EEG data.
+        overlap (float): Overlap fraction between consecutive windows (0 to 1).
+        verbose (bool): If True, prints progress.
+        visualization (bool): If True, displays correlation matrices.
+    
+    Returns:
+        list of numpy.ndarray: List of correlation matrices for each window.
+    """
+    # Compute step size based on overlap
+    step = int(samplingrate * window * (1 - overlap))  # Step size for moving window
+    segment_length = int(samplingrate * window)
+
+    # Split EEG data into overlapping windows
+    split_segments = [
+        eeg_data[:, i:i + segment_length] 
+        for i in range(0, eeg_data.shape[1] - segment_length + 1, step)
+    ]
+
+    # Compute correlation matrices
+    corr_matrices = []
+    for idx, segment in enumerate(split_segments):
+        if segment.shape[1] < segment_length:
+            continue  # Skip incomplete segments
+        
+        # Compute Pearson correlation
+        corr_matrix = numpy.corrcoef(segment)
+        corr_matrices.append(corr_matrix)
+
+        if verbose:
+            print(f"Computed correlation matrix {idx + 1}/{len(split_segments)}")
+
+    # Optional: Visualization of correlation matrices
+    if visualization and corr_matrices:
+        avg_corr_matrix = numpy.mean(corr_matrices, axis=0)
+        utils.draw_projection(avg_corr_matrix)
+
+    return corr_matrices
+
+def compute_plv_matrices(eeg_data, samplingrate, window=1, overlap=0, verbose=True, visualization=True):
+    """
+    Compute Phase Locking Value (PLV) matrices for EEG data using a sliding window approach.
+    
+    Parameters:
+        eeg_data (numpy.ndarray): EEG data with shape (channels, time_samples).
+        samplingrate (int): Sampling rate of the EEG data in Hz.
+        window (float): Window size in seconds for segmenting EEG data.
+        overlap (float): Overlap fraction between consecutive windows (0 to 1).
+        verbose (bool): If True, prints progress.
+        visualization (bool): If True, displays PLV matrices.
+    
+    Returns:
+        list of numpy.ndarray: List of PLV matrices for each window.
+    """
+    step = int(samplingrate * window * (1 - overlap))  # Step size for moving window
+    segment_length = int(samplingrate * window)
+
+    # Split EEG data into overlapping windows
+    split_segments = [
+        eeg_data[:, i:i + segment_length] 
+        for i in range(0, eeg_data.shape[1] - segment_length + 1, step)
+    ]
+
+    plv_matrices = []
+    for idx, segment in enumerate(split_segments):
+        if segment.shape[1] < segment_length:
+            continue  # Skip incomplete segments
+        
+        # Compute Hilbert transform to obtain instantaneous phase
+        analytic_signal = hilbert(segment, axis=1)
+        phase_data = np.angle(analytic_signal)  # Extract phase information
+        
+        # Compute PLV matrix
+        num_channels = phase_data.shape[0]
+        plv_matrix = np.zeros((num_channels, num_channels))
+        
+        for ch1 in range(num_channels):
+            for ch2 in range(num_channels):
+                phase_diff = phase_data[ch1, :] - phase_data[ch2, :]
+                plv_matrix[ch1, ch2] = np.abs(np.mean(np.exp(1j * phase_diff)))
+        
+        plv_matrices.append(plv_matrix)
+
+        if verbose:
+            print(f"Computed PLV matrix {idx + 1}/{len(split_segments)}")
+    
+    # Optional visualization
+    if visualization and plv_matrices:
+        avg_plv_matrix = np.mean(plv_matrices, axis=0)
+        utils.draw_projection(avg_plv_matrix)
+    
+    return plv_matrices
 
 # %% spectral connectivity
 def compute_spectral_connectivity(subject, experiment, method, freq_band, 
@@ -193,21 +360,28 @@ def compute_spectral_connectivity(subject, experiment, method, freq_band,
 
 # %% usage
 if __name__ == "__main__":
-    # eeg_mat, eeg = read_eeg("sub1ex1")
-    # epochs = mne.make_fixed_length_epochs(eeg, duration=1, overlap=0)
-    # epoched = epochs.get_data()
+    # sample
+    subject_sample = 1
     
-    # # filtered_eeg = filter_eeg(eeg)
-    # filtered_eeg = read_filtered_eegdata("sub1ex1", freq_band="gamma")
+    # read eeg
+    _, eeg, _ = utils_dreamer.get_dreamer()
+    eeg = eeg[subject_sample].transpose()
     
-    # eeg = filtered_eeg.get_data()
-    # # pli = compute_spectral_connectivity("sub1ex1", "pli", "gamma", window=3000)
+    # filter
+    calculated_filtered_eeg_dict = filter_eeg(eeg, verbose=True)
+    loaded_filtered_eeg = read_filtered_eegdata(subject_sample, freq_band="joint")
     
-    ######
-    # _, eeg, _ = utils_dreamer.get_dreamer()
+    # filtering and save
+    # filter_eeg_and_save_circle()
     
-    # eeg_sample = eeg[0]
-    # filtered_eeg_sample = filter_eeg(eeg_sample)
+    # correlation matrix
+    cms_pcc = compute_synchronization(subject_sample, method="pcc", freq_band="joint")
+    cms_plv = compute_synchronization(subject_sample, method="pcc", freq_band="joint")
     
-    filter_eeg_and_save_circle(_range=range(1,23))
-    # filtered_eeg = read_filtered_eegdata(1)
+    # compute correlation matrix and save
+    # compute_cms_and_save_circle(method="pcc")
+    # compute_cms_and_save_circle(method="plv")
+    
+    cms_pcc_alpha, cms_pcc_beta, cms_pcc_gamma = read_cms(subject_sample, method="pcc")
+    cms_plv_alpha, cms_plv_beta, cms_plv_gamma = read_cms(subject_sample, method="plv")
+    

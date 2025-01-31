@@ -11,6 +11,7 @@ import os
 import h5py
 import scipy.io
 
+# %% read mat
 def simplify_mat_structure(data):
     """
     递归解析和简化 MATLAB 数据结构。
@@ -91,6 +92,7 @@ def read_mat(path_file, simplify=True):
             mat_data = {key: simplify_mat_structure(value) for key, value in mat_data.items() if key[0] != '_'}
         return mat_data
 
+# %% get labels
 def normalize_to_labels(array, labels):
     """
     Normalize an array to discrete labels.
@@ -161,6 +163,7 @@ def get_labels(samplingrate=128):
     
     return labels_arousal, labels_dominance, labels_valence
 
+# %% usage
 if __name__ == '__main__':
     # labels
     dreamer, dreamer_eeg, electrode_list = get_dreamer()
