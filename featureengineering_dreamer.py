@@ -84,7 +84,7 @@ def filter_eeg(eeg, freq=128, verbose=False):
 
 def filter_eeg_and_save(subject, verbose=True):
     _, eeg, _ = utils_dreamer.get_dreamer()
-    eeg = eeg[subject]
+    eeg = eeg[subject].transpose()
     
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
@@ -209,5 +209,5 @@ if __name__ == "__main__":
     # eeg_sample = eeg[0]
     # filtered_eeg_sample = filter_eeg(eeg_sample)
     
-    filter_eeg_and_save_circle()
+    filter_eeg_and_save_circle(_range=range(1,23))
     # filtered_eeg = read_filtered_eegdata(1)
