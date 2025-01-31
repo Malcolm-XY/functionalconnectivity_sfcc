@@ -109,24 +109,33 @@ def filter_eeg_and_save_circle(_range=range(0,23)):
         filter_eeg_and_save(subhject)
             
 # %% feature engineering
-def compute_temporal_connectivity(experiment, method, freq_band, 
-                                  window=1, overlap=0, verbose=True, visualization=True):
-    filtered_eeg = read_filtered_eegdata(experiment, freq_band=freq_band)
-    eeg = filtered_eeg.get_data()
+def compute_temporal_connectivity(subject, method, freq_band, 
+                                  samplingrate=128, window=1, overlap=0, 
+                                  verbose=True, visualization=True):
+    filtered_eeg = read_filtered_eegdata(subject, freq_band=freq_band)
+    
+    if method == "joint":
+        eeg_alpha = filtered_eeg["alpha"].get_data()
+        eeg_beta = filtered_eeg["beta"].get_data()
+        eeg_gamma = filtered_eeg["gamma"].get_data()
+    elif method == "alpha":
+        eeg_alpha = filtered_eeg["alpha"].get_data()
+    
+    split_eeg = [eeg[i:i + samplingrate] for i in range(0, len(eeg), samplingrate)]
     
     ### **************
 
 # %% spectral connectivity
-def compute_spectral_connectivity(experiment, method, freq_band, 
+def compute_spectral_connectivity(subject, experiment, method, freq_band, 
                                   window=1, overlap=0, freq_density=1, verbose=True):
     # %% asign eeg
-    _, eeg = read_eeg(experiment)
-    epochs = mne.make_fixed_length_epochs(eeg, duration=window, overlap=0)
-    
     try:
-        _, eeg = read_eeg(experiment)
+        _, eeg, _ = utils_dreamer.get_dreamer()
+        eeg = eeg[subject]
     except FileNotFoundError as e:
         raise ValueError(f"Experiment file not found: {experiment}") from e
+    
+    epochs = mne.make_fixed_length_epochs(eeg, duration=window, overlap=0)
     
     # parameters
     fmin, fmax = 2, 50
@@ -195,10 +204,10 @@ if __name__ == "__main__":
     # # pli = compute_spectral_connectivity("sub1ex1", "pli", "gamma", window=3000)
     
     ######
-    # _, eeg, _ = utils_dreamer.get_dreamer()
+    _, eeg, _ = utils_dreamer.get_dreamer()
     
     # eeg_sample = eeg[0]
     # filtered_eeg_sample = filter_eeg(eeg_sample)
     
     # filter_eeg_and_save_circle()
-    filtered_eeg = read_filtered_eegdata(1)
+    # filtered_eeg = read_filtered_eegdata(1)

@@ -49,9 +49,8 @@ def get_dreamer():
     eeg_dic = []
     for trial_data in dreamer_data:
         eeg_list = trial_data["EEG"]["stimuli"]
-
-        for eeg in eeg_list:
-            eeg_flattened = np.vstack(eeg)
+        
+        eeg_flattened = np.vstack(eeg_list)
     
         eeg_dic.append(eeg_flattened)
     
@@ -164,7 +163,7 @@ def get_labels(samplingrate=128):
 
 if __name__ == '__main__':
     # labels
-    dreamer, dreamerr_eeg, electrode_list = get_dreamer()
+    dreamer, dreamer_eeg, electrode_list = get_dreamer()
     # eeg data
     labels_arousal, labels_dominance, labels_valence = get_labels()
     
