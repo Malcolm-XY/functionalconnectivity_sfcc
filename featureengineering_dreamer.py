@@ -43,14 +43,14 @@ def read_filtered_eegdata(subject, freq_band="Joint"):
 
     try:
         if freq_band in ["alpha", "beta", "gamma", "delta", "theta"]:
-            path_file = os.path.join(path_folder, f"subject{subject}_{freq_band.capitalize()}_eeg.fif")
+            path_file = os.path.join(path_folder, f"sub{subject}_{freq_band.capitalize()}_eeg.fif")
             filtered_eeg = mne.io.read_raw_fif(path_file, preload=True)
             return filtered_eeg
 
         elif freq_band.lower() == "joint":
             filtered_eeg = {}
             for band in ["Alpha", "Beta", "Gamma", "Delta", "Theta"]:
-                path_file = os.path.join(path_folder, f"subject{subject}_{band}_eeg.fif")
+                path_file = os.path.join(path_folder, f"sub{subject}_{band}_eeg.fif")
                 filtered_eeg[band.lower()] = mne.io.read_raw_fif(path_file, preload=True)
             return filtered_eeg
 
@@ -96,7 +96,7 @@ def filter_eeg_and_save(subject, verbose=True):
     
     # 保存每个频段的数据
     for band, filtered_eeg in filtered_eeg_dict.items():
-        path_file = os.path.join(path_folder, f"sub{subject+1}_{band}.fif")
+        path_file = os.path.join(path_folder, f"sub{subject+1}_{band}_eeg.fif")
         filtered_eeg.save(path_file, overwrite=True)
         if verbose:
             print(f"Saved {band} band filtered EEG to {path_file}")
