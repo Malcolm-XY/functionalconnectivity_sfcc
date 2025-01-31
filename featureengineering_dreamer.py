@@ -204,10 +204,10 @@ if __name__ == "__main__":
     # # pli = compute_spectral_connectivity("sub1ex1", "pli", "gamma", window=3000)
     
     ######
-    _, eeg, _ = utils_dreamer.get_dreamer()
+    # _, eeg, _ = utils_dreamer.get_dreamer()
     
     # eeg_sample = eeg[0]
     # filtered_eeg_sample = filter_eeg(eeg_sample)
     
-    # filter_eeg_and_save_circle()
+    filter_eeg_and_save_circle()
     # filtered_eeg = read_filtered_eegdata(1)
