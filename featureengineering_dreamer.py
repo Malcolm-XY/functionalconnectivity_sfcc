@@ -21,7 +21,7 @@ from mne_connectivity import spectral_connectivity_time
 from mne_connectivity.viz import plot_connectivity_circle
 
 # %% filter eeg
-def read_filtered_eegdata(experiment, freq_band="Joint"):
+def read_filtered_eegdata(subject, freq_band="Joint"):
     """
     Read filtered EEG data for the specified experiment and frequency band.
 
@@ -39,18 +39,18 @@ def read_filtered_eegdata(experiment, freq_band="Joint"):
     """
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
-    path_folder = os.path.join(path_parent, 'data', 'SEED', 'original eeg', 'Filtered_EEG')
+    path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'Filtered_EEG')
 
     try:
         if freq_band in ["alpha", "beta", "gamma", "delta", "theta"]:
-            path_file = os.path.join(path_folder, f"{experiment}_{freq_band.capitalize()}_eeg.fif")
+            path_file = os.path.join(path_folder, f"subject{subject}_{freq_band.capitalize()}_eeg.fif")
             filtered_eeg = mne.io.read_raw_fif(path_file, preload=True)
             return filtered_eeg
 
         elif freq_band.lower() == "joint":
             filtered_eeg = {}
             for band in ["Alpha", "Beta", "Gamma", "Delta", "Theta"]:
-                path_file = os.path.join(path_folder, f"{experiment}_{band}_eeg.fif")
+                path_file = os.path.join(path_folder, f"subject{subject}_{band}_eeg.fif")
                 filtered_eeg[band.lower()] = mne.io.read_raw_fif(path_file, preload=True)
             return filtered_eeg
 
@@ -58,7 +58,7 @@ def read_filtered_eegdata(experiment, freq_band="Joint"):
             raise ValueError(f"Invalid frequency band: {freq_band}. Choose from 'alpha', 'beta', 'gamma', 'delta', 'theta', or 'joint'.")
 
     except FileNotFoundError as e:
-        raise FileNotFoundError(f"File not found for experiment '{experiment}' and frequency band '{freq_band}'. Check the path and file existence.")
+        raise FileNotFoundError(f"File not found for subject '{subject}' and frequency band '{freq_band}'. Check the path and file existence.")
 
 def filter_eeg(eeg, freq=128, verbose=False):
     info = mne.create_info(ch_names=['Ch' + str(i) for i in range(eeg.shape[0])], sfreq=freq, ch_types='eeg')
@@ -200,4 +200,5 @@ if __name__ == "__main__":
     # eeg_sample = eeg[0]
     # filtered_eeg_sample = filter_eeg(eeg_sample)
     
-    filter_eeg_and_save_circle()
+    # filter_eeg_and_save_circle()
+    filtered_eeg = read_filtered_eegdata(1)
