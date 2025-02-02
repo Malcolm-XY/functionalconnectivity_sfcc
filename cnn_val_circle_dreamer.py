@@ -7,6 +7,7 @@ Created on Sun Feb  2 15:28:38 2025
 
 import os
 import pandas as pd
+import torch
 
 import utils
 import utils_dreamer
@@ -18,6 +19,9 @@ import rearrangedmap_construct
 def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="arousal", subject_range=range(1,2)):
     labels = utils_dreamer.get_labels()
     labels = labels[emotion_dimension]
+    
+    labels_tensor=torch.tensor(labels)
+    unique_classes, labels_tensor = torch.unique(labels_tensor, sorted=True, return_inverse=True)
     
     results_entry = []
     for sub in subject_range:
@@ -40,7 +44,7 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="ar
             fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
         
         # Validation
-        result = cnn_validation.cnn_cross_validation(model, fcdata, labels)
+        result = cnn_validation.cnn_cross_validation(model, fcdata, labels_tensor)
         
         # Add identifier to the result
         result['Identifier'] = f'sub{sub}'
@@ -168,7 +172,7 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 6)
+fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 2)
 
 # trainning and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -178,7 +182,7 @@ output_dir = os.path.join(os.getcwd(), 'results')
 filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
-# # %% validation 2; cm
+# %% validation 2; cm
 # fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 2)
 
 # # trainning and validation
