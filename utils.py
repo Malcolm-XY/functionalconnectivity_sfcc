@@ -10,12 +10,13 @@ import numpy
 import h5py
 import scipy
 
+# %% labels
 def get_label():
     # path
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
     
-    path_labels = os.path.join(path_parent, 'data', 'SEED', 'functional connectivity', 'labels.txt')
+    path_labels = os.path.join(path_parent, 'data', 'SEED', 'labels', 'labels.txt')
     
     # read txt; original channel distribution
     labels = pandas.read_csv(path_labels, sep='\t', header=None).to_numpy().flatten()
@@ -24,14 +25,7 @@ def get_label():
     
     return labels
 
-def raed_labels(path_txt):
-    # read txt; original channel distribution
-    labels = pandas.read_csv(path_txt, sep='\t', header=None).to_numpy().flatten()
-    
-    print('Labels Reading Done')
-    
-    return labels
-
+# %% data
 def load_cmdata2d(selected_feature, selected_band, experiment, imshow=False):
     """
     根据选择的特征和频段加载对应的共现矩阵数据。
@@ -199,8 +193,8 @@ def cmdata_reshaper(mat_data):
 
     return mat_data
 
+# %% visualization
 import matplotlib.pyplot as plt
-
 def draw_projection(sample_projection):
     if sample_projection.ndim == 2:
         # Visualize the 2D matrix
@@ -233,3 +227,6 @@ if __name__ == '__main__':
     # matrix
     cmdata2d_gamma = load_cmdata2d(feature_sample, freq_sample_2, experiment_sample, imshow=True)    
     cmdata2d_joint = load_cmdata2d(feature_sample, freq_sample_1, experiment_sample, imshow=True)
+
+    # labels
+    labels = get_label()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jan  3 14:34:33 2025
+Created on Sun Feb  2 15:28:38 2025
 
 @author: 18307
 """
@@ -9,75 +9,42 @@ import os
 import pandas as pd
 
 import utils
+import utils_dreamer
+import featureengineering_dreamer
 import cnn_validation
 import covmap_construct
 import rearrangedmap_construct
 
-def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_range):
-    labels = utils.get_label()
+def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="arousal", subject_range=range(1,2)):
+    labels = utils_dreamer.get_labels()
+    labels = labels[emotion_dimension]
     
     results_entry = []
     for sub in subject_range:
-        for ex in experiment_range:
-            identifier = f'sub{sub}ex{ex}'
-            print(f'Processing {identifier}...')
-            
-            # Get cm data
-            cmdata = utils.load_cmdata2d(feature, 'joint', identifier)
-            
-            if fcnetwork == 'sfcc':
-                # Draw sfcc
-                fcdata = covmap_construct.generate_sfcc(cmdata, "SEED", imshow=True)
-            elif fcnetwork == 'cm':
-                fcdata = cmdata
-                fcdata = rearrangedmap_construct.global_padding(fcdata)
-            elif fcnetwork == 'mx':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
-            elif fcnetwork == 'vc':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
-            
-            # Validation
-            result = cnn_validation.cnn_validation(model, fcdata, labels)
-            
-            # Add identifier to the result
-            result['Identifier'] = f'sub{sub}ex{ex}'
-            results_entry.append(result)
-
-    # print(f'Final Results: {results_entry}')
-    print('K-Fold Validation compelete\n')
-    
-    return results_entry
-
-def cnn_cross_validation_circle(model, method, feature, subject_range, experiment_range):
-    labels = utils.get_label()
-    
-    results_entry = []
-    for sub in subject_range:
-        for ex in experiment_range:
-            identifier = f'sub{sub}ex{ex}'
-            print(f'Processing {identifier}...')
-
-            # Get cm data
-            cmdata = utils.load_cmdata2d(feature, 'joint', identifier, imshow=True)
-            
-            if method == 'sfcc':
-                # Draw sfcc
-                fcdata = covmap_construct.generate_sfcc(cmdata, dataset="SEED", imshow=True)
-            elif method == 'cm':
-                fcdata = cmdata
-                fcdata = rearrangedmap_construct.global_padding(fcdata)
-                utils.draw_projection(fcdata[0][0])
-            elif method == 'mx':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
-            elif method == 'vc':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
-            
-            # Validation
-            result = cnn_validation.cnn_cross_validation(model, fcdata, labels)
-            
-            # Add identifier to the result
-            result['Identifier'] = f'sub{sub}ex{ex}'
-            results_entry.append(result)
+        identifier = f'sub{sub}ex'
+        print(f'Processing {identifier}...')
+        
+        # Get cm data
+        cmdata = featureengineering_dreamer.read_cms(sub, feature=feature, freq_band="joint", imshow=True)
+        
+        if fcnetwork == 'sfcc':
+            # Draw sfcc
+            fcdata = covmap_construct.generate_sfcc(cmdata, "DREAMER", imshow=True)
+        elif fcnetwork == 'cm':
+            fcdata = cmdata
+            fcdata = rearrangedmap_construct.global_padding(fcdata)
+            utils.draw_projection(fcdata[0][0])
+        elif fcnetwork == 'mx':
+            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
+        elif fcnetwork == 'vc':
+            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
+        
+        # Validation
+        result = cnn_validation.cnn_cross_validation(model, fcdata, labels)
+        
+        # Add identifier to the result
+        result['Identifier'] = f'sub{sub}'
+        results_entry.append(result)
 
     # print(f'Final Results: {results_entry}')
     print('K-Fold Validation compelete\n')
@@ -198,51 +165,51 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
 # %% Usage; training settings
 from models import models #, models_multiscale
 
-model = models.MSCNN_3_2layers_cv_235_adaptive_maxpool_3()
+model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 16), range(1, 4)
+fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 6)
 
 # trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
 # Save results to XLSX (append mode)
 output_dir = os.path.join(os.getcwd(), 'results')
 filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
-# %% validation 2; cm
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 16), range(1, 4)
+# # %% validation 2; cm
+# fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 2)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
-# %% validation 3; vc
-fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 16), range(1, 4)
+# # %% validation 3; vc
+# fcnetwork, feature, emotion, subject_range = 'vc', 'PCC', "arousal", range(1, 2)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
-# %% validation 4; mx
-fcnetwork, feature, subject_range, experiment_range = 'mx', 'PCC', range(1, 16), range(1, 4)
+# # %% validation 4; mx
+# fcnetwork, feature, emotion, subject_range = 'ms', 'PCC', "arousal", range(1, 2)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
 end_program_actions(play_sound=True, shutdown=False, countdown_seconds=30)

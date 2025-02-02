@@ -5,11 +5,11 @@ Created on Mon Jan 13 15:49:11 2025
 @author: 18307
 """
 
-import numpy as np
-import pandas as pd
 import os
 import h5py
 import scipy.io
+import numpy as np
+import pandas as pd
 
 # %% read mat
 def simplify_mat_structure(data):
@@ -92,7 +92,25 @@ def read_mat(path_file, simplify=True):
             mat_data = {key: simplify_mat_structure(value) for key, value in mat_data.items() if key[0] != '_'}
         return mat_data
 
-# %% get labels
+# %% labels
+def get_labels():
+    # 获取当前路径的父目录
+    path_current = os.getcwd()
+    path_parent = os.path.dirname(path_current)
+
+    # 构建 labels.txt 的路径
+    path_labels = os.path.join(path_parent, 'data', 'DREAMER', 'labels', 'labels.txt')
+
+    # 读取数据，假设是以空格或 Tab 分隔
+    df = pd.read_csv(path_labels, sep=r'\s+', engine='python')  # 自动识别空格/TAB 分隔
+
+    # 转换为字典，每个 key 关联到一个 NumPy 数组
+    labels_dict = {col: df[col].to_numpy() for col in df.columns}
+
+    print('Labels Reading Done')
+
+    return labels_dict  # 返回 {'arousal': np.array([...]), 'dominance': np.array([...]), 'valence': np.array([...])}
+
 def normalize_to_labels(array, labels):
     """
     Normalize an array to discrete labels.
@@ -116,7 +134,7 @@ def normalize_to_labels(array, labels):
     # Map indices to corresponding labels
     return np.array([labels[i - 1] for i in discrete_labels])
 
-def get_labels(samplingrate=128):
+def generate_labels(samplingrate=128):
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
     path_data = os.path.join(path_parent, 'data', 'DREAMER', 'DREAMER.mat')
@@ -165,8 +183,11 @@ def get_labels(samplingrate=128):
 
 # %% usage
 if __name__ == '__main__':
-    # labels
+    # eeg and info from original dataset
     dreamer, dreamer_eeg, electrode_list = get_dreamer()
-    # eeg data
-    labels_arousal, labels_dominance, labels_valence = get_labels()
     
+    # compute labels
+    labels_arousal, labels_dominance, labels_valence = generate_labels()
+    
+    # read labels.txt
+    labels = get_labels()

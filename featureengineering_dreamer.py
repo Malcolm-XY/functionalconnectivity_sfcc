@@ -112,43 +112,18 @@ def read_filtered_eegdata(subject, freq_band="Joint"):
         raise FileNotFoundError(f"File not found for subject '{subject}' and frequency band '{freq_band}'. Check the path and file existence.")
 
 # %% feature engineering
-def read_cms_(subject, method, imshow=False):
-    path_current = os.getcwd()
-    path_parent = os.path.dirname(path_current)
-    
-    if method == "pcc":
-        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PCC')
-    elif method == "plv":
-        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PLV')
-
-    path_file = os.path.join(path_folder, f"sub{subject}.npy")
-    
-    cms_load = numpy.load(path_file, allow_pickle=True)
-    cms_load = cms_load.item()
-    
-    cms_alpha = cms_load["alpha"]
-    cms_beta = cms_load["beta"]
-    cms_gamma = cms_load["gamma"]
-    
-    if imshow:
-        utils.draw_projection(numpy.mean(cms_alpha, axis=0))
-        utils.draw_projection(numpy.mean(cms_beta, axis=0))
-        utils.draw_projection(numpy.mean(cms_gamma, axis=0))
-    
-    return cms_alpha, cms_beta, cms_gamma
-
-def read_cms(subject, method, freq_band="joint", imshow=False):
+def read_cms(subject, feature, freq_band="joint", imshow=False):
     # 获取当前路径及父路径
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
     
     # 根据方法选择对应文件夹
-    if method == "pcc":
+    if feature == "PCC":
         path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PCC')
-    elif method == "plv":
+    elif feature == "PLV":
         path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PLV')
     else:
-        raise ValueError(f"Unsupported method: {method}")
+        raise ValueError(f"Unsupported feature: {feature}")
     
     # 拼接数据文件路径
     path_file = os.path.join(path_folder, f"sub{subject}.npy")
@@ -177,11 +152,6 @@ def read_cms(subject, method, freq_band="joint", imshow=False):
         if imshow: utils.draw_projection(np.mean(cms_gamma, axis=0))
         return cms_gamma
     elif freq_band == "joint":
-        # 堆叠三个频段数据，生成形状为 (n_samples, 3, w, w) 的数组
-        # if imshow:
-        #     utils.draw_projection(np.mean(cms_alpha, axis=0))
-        #     utils.draw_projection(np.mean(cms_beta, axis=0))
-        #     utils.draw_projection(np.mean(cms_gamma, axis=0))
         joint = np.stack([cms_alpha, cms_beta, cms_gamma], axis=1)
         if imshow: utils.draw_projection(numpy.mean(joint, axis=0))
         return joint
@@ -427,13 +397,13 @@ if __name__ == "__main__":
     # filter_eeg_and_save_circle()
     
     # correlation matrix
-    cms_pcc = compute_synchronization(subject_sample, method="pcc", freq_band="joint")
-    cms_plv = compute_synchronization(subject_sample, method="pcc", freq_band="joint")
+    # cms_pcc = compute_synchronization(subject_sample, method="PCC", freq_band="joint")
+    # cms_plv = compute_synchronization(subject_sample, method="PLV", freq_band="joint")
     
     # compute correlation matrix and save
     # compute_cms_and_save_circle(method="pcc")
     # compute_cms_and_save_circle(method="plv")
     
-    cms_pcc_alpha, cms_pcc_beta, cms_pcc_gamma = read_cms(subject_sample, method="pcc")
-    cms_plv_alpha, cms_plv_beta, cms_plv_gamma = read_cms(subject_sample, method="plv")
+    cms_pcc = read_cms(subject_sample, method="PCC", freq_band="joint", imshow=True)
+    cms_plv = read_cms(subject_sample, method="PLV", freq_band="joint", imshow=True)
     
