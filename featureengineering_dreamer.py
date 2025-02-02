@@ -112,7 +112,7 @@ def read_filtered_eegdata(subject, freq_band="Joint"):
         raise FileNotFoundError(f"File not found for subject '{subject}' and frequency band '{freq_band}'. Check the path and file existence.")
 
 # %% feature engineering
-def read_cms(subject, method):
+def read_cms_(subject, method, imshow=False):
     path_current = os.getcwd()
     path_parent = os.path.dirname(path_current)
     
@@ -130,11 +130,63 @@ def read_cms(subject, method):
     cms_beta = cms_load["beta"]
     cms_gamma = cms_load["gamma"]
     
-    utils.draw_projection(numpy.mean(cms_alpha, axis=0))
-    utils.draw_projection(numpy.mean(cms_beta, axis=0))
-    utils.draw_projection(numpy.mean(cms_gamma, axis=0))
+    if imshow:
+        utils.draw_projection(numpy.mean(cms_alpha, axis=0))
+        utils.draw_projection(numpy.mean(cms_beta, axis=0))
+        utils.draw_projection(numpy.mean(cms_gamma, axis=0))
     
     return cms_alpha, cms_beta, cms_gamma
+
+def read_cms(subject, method, freq_band="joint", imshow=False):
+    # 获取当前路径及父路径
+    path_current = os.getcwd()
+    path_parent = os.path.dirname(path_current)
+    
+    # 根据方法选择对应文件夹
+    if method == "pcc":
+        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PCC')
+    elif method == "plv":
+        path_folder = os.path.join(path_parent, 'data', 'DREAMER', 'functional connectivity', 'PLV')
+    else:
+        raise ValueError(f"Unsupported method: {method}")
+    
+    # 拼接数据文件路径
+    path_file = os.path.join(path_folder, f"sub{subject}.npy")
+    
+    # 加载数据
+    cms_load = np.load(path_file, allow_pickle=True).item()
+    
+    # 从加载的数据中获取各频段的列表（列表中每个元素为形状 wxw 的数组）
+    cms_alpha = cms_load["alpha"]
+    cms_beta = cms_load["beta"]
+    cms_gamma = cms_load["gamma"]
+    
+    # 将列表转换为 NumPy 数组，形状为 (n_samples, w, w)
+    cms_alpha = np.array(cms_alpha)
+    cms_beta = np.array(cms_beta)
+    cms_gamma = np.array(cms_gamma)     
+        
+    # 根据 freq_band 参数返回相应的数据
+    if freq_band == "alpha":
+        if imshow: utils.draw_projection(np.mean(cms_alpha, axis=0))
+        return cms_alpha
+    elif freq_band == "beta":
+        if imshow: utils.draw_projection(np.mean(cms_beta, axis=0))
+        return cms_beta
+    elif freq_band == "gamma":
+        if imshow: utils.draw_projection(np.mean(cms_gamma, axis=0))
+        return cms_gamma
+    elif freq_band == "joint":
+        # 堆叠三个频段数据，生成形状为 (n_samples, 3, w, w) 的数组
+        # if imshow:
+        #     utils.draw_projection(np.mean(cms_alpha, axis=0))
+        #     utils.draw_projection(np.mean(cms_beta, axis=0))
+        #     utils.draw_projection(np.mean(cms_gamma, axis=0))
+        joint = np.stack([cms_alpha, cms_beta, cms_gamma], axis=1)
+        if imshow: utils.draw_projection(numpy.mean(joint, axis=0))
+        return joint
+    else:
+        raise ValueError(f"Unknown freq_band parameter: {freq_band}")
 
 def compute_cms_and_save_circle(method, _range=range(0,23)):
     path_current = os.getcwd()
