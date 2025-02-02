@@ -6,6 +6,7 @@ Created on Sun Feb  2 15:28:38 2025
 """
 
 import os
+import numpy as np
 import pandas as pd
 import torch
 
@@ -37,11 +38,11 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="ar
         elif fcnetwork == 'cm':
             fcdata = cmdata
             fcdata = rearrangedmap_construct.global_padding(fcdata)
-            utils.draw_projection(fcdata[0][0])
+            utils.draw_projection(np.mean(fcdata, axis=(0,1)))
         elif fcnetwork == 'mx':
-            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
+            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', padding=True, imshow = True)
         elif fcnetwork == 'vc':
-            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
+            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', padding=True, imshow = True)
         
         # Validation
         result = cnn_validation.cnn_cross_validation(model, fcdata, labels_tensor)
@@ -172,18 +173,7 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 2)
-
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
-
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
-
-# %% validation 2; cm
-# fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 2)
+# fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 23)
 
 # # trainning and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -193,7 +183,18 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 # save_results_to_xlsx_append(results, output_dir, filename)
 
-# # %% validation 3; vc
+# %% validation 2; cm
+fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 23)
+
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
+
+# %% validation 3; vc
 # fcnetwork, feature, emotion, subject_range = 'vc', 'PCC', "arousal", range(1, 2)
 
 # # trainning and validation
@@ -204,7 +205,7 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 # save_results_to_xlsx_append(results, output_dir, filename)
 
-# # %% validation 4; mx
+# %% validation 4; mx
 # fcnetwork, feature, emotion, subject_range = 'ms', 'PCC', "arousal", range(1, 2)
 
 # # trainning and validation
