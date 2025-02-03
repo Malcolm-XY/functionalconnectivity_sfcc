@@ -10,6 +10,7 @@ import pandas
 import numpy as np
 
 import utils
+import featureengineering_dreamer
 
 def global_padding(matrix, width=81, verbose=True):
     """
@@ -58,7 +59,7 @@ def global_padding(matrix, width=81, verbose=True):
 
     return padded_matrix
 
-def generate_rearrangedcm(cm_data, method, padding=True, imshow=True):
+def generate_rearrangedcm(cm_data, method, order="SEED", padding=True, imshow=True):
     """
     Generate a rearranged confusion matrix based on the specified method.
 
@@ -73,7 +74,7 @@ def generate_rearrangedcm(cm_data, method, padding=True, imshow=True):
     Raises:
         ValueError: If an invalid rearrangement method is specified.
     """
-    rearranged_indices = get_rearrangedindex(method)
+    rearranged_indices = get_rearrangedindex(method, order=order)
     sorted_matrix = reshape_and_sort(cm_data, rearranged_indices)
 
     if padding:
@@ -84,13 +85,19 @@ def generate_rearrangedcm(cm_data, method, padding=True, imshow=True):
 
     return sorted_matrix
     
-def get_rearrangedindex(method):
+def get_rearrangedindex(method, order="SEED"):
     path_current = os.getcwd()
     
     if method == 'MX':
-        path_txt = os.path.join(path_current, 'rearrangement', 'MXindex.txt')
+        if order=="SEED": 
+            path_txt = os.path.join(path_current, 'rearrangement', 'MXindex.txt')
+        elif order == "DREAMER":
+            path_txt = os.path.join(path_current, 'rearrangement', 'MXindex_dreamer.txt')
     elif method =='VC':
-        path_txt = os.path.join(path_current, 'rearrangement', 'VCindex.txt')
+        if order == "SEED":
+            path_txt = os.path.join(path_current, 'rearrangement', 'VCindex.txt')
+        elif order == "DREAMER":
+            path_txt = os.path.join(path_current, 'rearrangement', 'VCindex_dreamer.txt')
     else: raise ValueError('Invalid rearranged method!')
     
     index = read_rearrangedindex(path_txt)
@@ -151,10 +158,13 @@ def compute_sorted_global_avg(num_subjects, num_experiments=3, single=False):
 if __name__ == '__main__':
     # mx_index = compute_sorted_global_avg(15)
     
+    # SEED
     feature_sample, freq_sample, experiment_sample = 'PCC', 'joint',  'sub1ex1'
-    
     cm_data = utils.load_cmdata2d(feature_sample, freq_sample, experiment_sample)
 
     rearranged_MX_cm = generate_rearrangedcm(cm_data, 'MX', imshow=True)
     rearranged_VC_cm = generate_rearrangedcm(cm_data, 'VC', imshow=True)
     
+    # DREAMER
+    cm_data_d = featureengineering_dreamer.read_cms(1, feature="PCC", freq_band="joint", imshow=True)
+    rearranged_MX_cm_d = generate_rearrangedcm(cm_data_d, 'MX', order="DREAMER", padding=True, imshow = True)

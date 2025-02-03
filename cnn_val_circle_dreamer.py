@@ -40,9 +40,9 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="ar
             fcdata = rearrangedmap_construct.global_padding(fcdata)
             utils.draw_projection(np.mean(fcdata, axis=(0,1)))
         elif fcnetwork == 'mx':
-            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', padding=True, imshow = True)
+            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', order="DREAMER", padding=True, imshow = True)
         elif fcnetwork == 'vc':
-            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', padding=True, imshow = True)
+            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', order="DREAMER", padding=True, imshow = True)
         
         # Validation
         result = cnn_validation.cnn_cross_validation(model, fcdata, labels_tensor)
@@ -173,26 +173,26 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 23)
+# fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 23)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 23)
+# fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 23)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 3; vc
 fcnetwork, feature, emotion, subject_range = 'vc', 'PCC', "arousal", range(1, 23)

@@ -219,7 +219,7 @@ if __name__ == "__main__":
     sample_dreamer = 1
     
     smap_d, order_d = read_distribution("DREAMER")
-    cm_data_d = featureengineering_dreamer.read_cms(method="pcc", freq_band="gamma", 
+    cm_data_d = featureengineering_dreamer.read_cms(feature="PCC", freq_band="gamma", 
                                                     subject=sample_dreamer, imshow=True)
     
     # 文件1：生成 lmap 和 covmap
@@ -236,6 +236,6 @@ if __name__ == "__main__":
     utils.draw_projection(sfcc_d[0])
     
     # 简化流程
-    cm_data_joint_d = featureengineering_dreamer.read_cms(method="pcc", freq_band="joint", 
+    cm_data_joint_d = featureengineering_dreamer.read_cms(feature="PCC", freq_band="joint", 
                                                     subject=sample_dreamer, imshow=True)
     sfcc_joint_d = generate_sfcc(cm_data_joint_d, dataset="DREAMER", imshow=True)
