@@ -278,27 +278,26 @@ def load_cms(dataset='SEED', **kwargs):
 if __name__ == '__main__':
     # %% SEED
     # dataset
-    # seed_sub_sample, seed_ex_sample, seed_fre_sample1, seed_fre_sample2  = 1, 1, 'split', 'full'
-    # seed_sample_1 = load_seed(seed_sub_sample, seed_ex_sample, band=seed_fre_sample1)
-    # seed_sample_2 = load_seed(seed_sub_sample, seed_ex_sample, band=seed_fre_sample2)
+    seed_sub_sample, seed_ex_sample, seed_fre_sample1, seed_fre_sample2  = 1, 1, 'split', 'full'
+    seed_sample_1 = load_seed(seed_sub_sample, seed_ex_sample, band=seed_fre_sample1)
+    seed_sample_2 = load_seed(seed_sub_sample, seed_ex_sample, band=seed_fre_sample2)
     
-    # # cms
-    # experiment_sample, feature_sample, freq_sample_1, freq_sample_2 = 'sub1ex1', 'PCC', 'alpha', 'joint'
-    # seed_cms_sample_1 = load_cms(dataset='SEED', experiment=experiment_sample, feature=feature_sample, band=freq_sample_1)
-    # seed_cms_sample_2 = load_cms(dataset='SEED', experiment=experiment_sample, feature=feature_sample, band=freq_sample_2)
+    # cms
+    experiment_sample, feature_sample, freq_sample_1, freq_sample_2 = 'sub1ex1', 'PCC', 'alpha', 'joint'
+    seed_cms_sample_1 = load_cms(dataset='SEED', experiment=experiment_sample, feature=feature_sample, band=freq_sample_1)
+    seed_cms_sample_2 = load_cms(dataset='SEED', experiment=experiment_sample, feature=feature_sample, band=freq_sample_2)
     
-    # labels_SEED = read_labels_seed()
+    labels_SEED = read_labels_seed()
     
     # %% DREAMER
     # dataset
-    # dreamer, dreamer_eeg_, dreamer_electrodes = load_dataset(dataset='DREAMER')
+    dreamer, dreamer_eeg_, dreamer_electrodes = load_dataset(dataset='DREAMER')
+    dreamer_sub_sample, dreamer_fre_sample_1, dreamer_fre_sample_2 = 1, 'alpha', 'joint'
+    draemer_sample_1 = load_dreamer_filtered(dreamer_sub_sample, band=dreamer_fre_sample_1)
+    draemer_sample_2 = load_dreamer_filtered(dreamer_sub_sample, band=dreamer_fre_sample_2)
     
-    # dreamer_sub_sample, dreamer_fre_sample_1, dreamer_fre_sample_2 = 1, 'alpha', 'joint'
-    # draemer_sample_1 = load_dreamer_filtered(dreamer_sub_sample, band=dreamer_fre_sample_1)
-    # draemer_sample_2 = load_dreamer_filtered(dreamer_sub_sample, band=dreamer_fre_sample_2)
-    
-    # # cms
-    # experiment_sample_d, feature_sample_d, freq_sample_d1, freq_sample_d2 = 1, 'PCC', 'alpha', 'joint'
-    # dreamer_cms_sample_1 = load_cms(dataset='DREAMER', experiment=experiment_sample_d, feature=feature_sample_d, band=freq_sample_d1)
-    # dreamer_cms_sample_1 = load_cms(dataset='DREAMER', experiment=experiment_sample_d, feature=feature_sample_d, band=freq_sample_d2)
+    # cms
+    experiment_sample_d, feature_sample_d, freq_sample_d1, freq_sample_d2 = 1, 'PCC', 'alpha', 'joint'
+    dreamer_cms_sample_1 = load_cms(dataset='DREAMER', experiment=experiment_sample_d, feature=feature_sample_d, band=freq_sample_d1)
+    dreamer_cms_sample_1 = load_cms(dataset='DREAMER', experiment=experiment_sample_d, feature=feature_sample_d, band=freq_sample_d2)
     
