@@ -10,42 +10,44 @@ import numpy as np
 import pandas as pd
 import torch
 
-import utils
 import utils_dreamer
 import featureengineering_dreamer
 import cnn_validation
 import covmap_construct
 import rearrangedmap_construct
 
+# %% cross validation
 def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="arousal", subject_range=range(1,2)):
-    labels = utils_dreamer.get_labels()
+    # labels and targets
+    labels = utils_dreamer.read_labels_dreamer()
     labels = labels[emotion_dimension]
-    
     labels_tensor=torch.tensor(labels)
-    unique_classes, labels_tensor = torch.unique(labels_tensor, sorted=True, return_inverse=True)
+    unique_classes, targets = torch.unique(labels_tensor, sorted=True, return_inverse=True)
     
     results_entry = []
     for sub in subject_range:
         identifier = f'sub{sub}ex'
         print(f'Processing {identifier}...')
         
-        # Get cm data
-        cmdata = featureengineering_dreamer.read_cms(sub, feature=feature, freq_band="joint", imshow=True)
+        # get connectivity matrices
+        cms = featureengineering_dreamer.read_cms(sub, feature=feature, freq_band="joint", imshow=True)
         
+        # feature engineering; functional connectivity networks
         if fcnetwork == 'sfcc':
             # Draw sfcc
-            fcdata = covmap_construct.generate_sfcc(cmdata, "DREAMER", imshow=True)
+            fcs = covmap_construct.generate_sfcc(cms, "DREAMER", imshow=True)
+            fcs = featureengineering_dreamer.interpolate_matrices(fcs)
         elif fcnetwork == 'cm':
-            fcdata = cmdata
-            fcdata = rearrangedmap_construct.global_padding(fcdata)
-            utils.draw_projection(np.mean(fcdata, axis=(0,1)))
+            fcs = cms
+            fcs = rearrangedmap_construct.global_padding(fcs)
+            utils_dreamer.draw_projection(np.mean(fcs, axis=(0,1)))
         elif fcnetwork == 'mx':
-            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', order="DREAMER", padding=True, imshow = True)
+            fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'MX', order="DREAMER", padding=True, imshow = True)
         elif fcnetwork == 'vc':
-            fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', order="DREAMER", padding=True, imshow = True)
+            fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'VC', order="DREAMER", padding=True, imshow = True)
         
         # Validation
-        result = cnn_validation.cnn_cross_validation(model, fcdata, labels_tensor)
+        result = cnn_validation.cnn_cross_validation(model, fcs, targets)
         
         # Add identifier to the result
         result['Identifier'] = f'sub{sub}'
@@ -56,8 +58,8 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="ar
     
     return results_entry
 
+# %% save result actions
 from openpyxl import load_workbook
-
 def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fold Results'):
     """
     Appends results to an existing Excel file or creates a new file if it doesn't exist.
@@ -110,10 +112,10 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
     print(f"Results successfully saved to: {output_path}")
     return output_path
 
+# %% end program actions
 import time
 import threading
-
-def shutdown_with_countdown(countdown_seconds=30):
+def shutdown_with_countdown(countdown_seconds=120):
     """
     Initiates a shutdown countdown, allowing the user to cancel shutdown within the given time.
 

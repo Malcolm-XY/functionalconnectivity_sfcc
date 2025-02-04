@@ -24,7 +24,7 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
             print(f'Processing {identifier}...')
             
             # Get cm data
-            cmdata = utils.load_cmdata2d(feature, 'joint', identifier)
+            cmdata = utils.load_cmdata(feature, 'joint', identifier)
             
             if fcnetwork == 'sfcc':
                 # Draw sfcc
@@ -60,7 +60,7 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
             print(f'Processing {identifier}...')
 
             # Get cm data
-            cmdata = utils.load_cmdata2d(feature, 'joint', identifier, imshow=True)
+            cmdata = utils.load_cmdata(feature, 'joint', identifier, imshow=True)
             
             if method == 'sfcc':
                 # Draw sfcc
@@ -203,15 +203,15 @@ from models import models #, models_multiscale
 model = models.MSCNN_3_2layers_cv_235_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-# fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 2), range(1, 2)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 2), range(1, 2)
 
-# # trainning and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
 fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 2), range(1, 2)

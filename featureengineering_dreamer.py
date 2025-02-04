@@ -8,9 +8,7 @@ Created on Thu Jan 30 17:25:38 2025
 import os
 import numpy
 import numpy as np
-import h5py
-import scipy
-import scipy.signal
+import scipy.ndimage
 from scipy.signal import hilbert
 
 import seaborn as sns
@@ -380,13 +378,39 @@ def compute_spectral_connectivity(subject, experiment, method, freq_band,
 
     return conn_matrix
 
+# %% interpolation
+def interpolate_matrices(data, scale_factor=(1.0, 1.0)):
+    """
+    对形如 samples x channels x w x h 的数据进行插值，使每个 w x h 矩阵放缩
+    
+    参数:
+    - data: numpy.ndarray, 形状为 (samples, channels, w, h)
+    - scale_factor: float 或 (float, float)，插值的缩放因子
+    
+    返回:
+    - new_data: numpy.ndarray, 形状不变 (samples, channels, w, h)
+    """
+    samples, channels, w, h = data.shape
+    new_w, new_h = int(w * scale_factor[0]), int(h * scale_factor[1])
+    
+    # 目标尺寸
+    output_shape = (samples, channels, new_w, new_h)
+    new_data = np.zeros(output_shape, dtype=data.dtype)
+
+    # 对每个 w x h 矩阵进行插值
+    for i in range(samples):
+        for j in range(channels):
+            new_data[i, j] = scipy.ndimage.zoom(data[i, j], zoom=scale_factor, order=3)  # 采用三次插值
+    
+    return new_data
+
 # %% usage
 if __name__ == "__main__":
     # sample
     subject_sample = 1
     
     # read eeg
-    _, eeg, _ = utils_dreamer.get_dreamer()
+    _, eeg, _ = utils_dreamer.read_dreamer()
     eeg = eeg[subject_sample].transpose()
     
     # filter
