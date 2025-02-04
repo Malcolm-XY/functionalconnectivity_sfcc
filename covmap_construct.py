@@ -2,9 +2,7 @@ import os
 import numpy
 import pandas
 
-import utils
-import utils_dreamer
-import featureengineering_dreamer
+import utils_common
 
 # %% intergrated
 def generate_sfcc(cm_data, dataset, imshow=False):
@@ -44,7 +42,7 @@ def generate_sfcc(cm_data, dataset, imshow=False):
         raise ValueError("Input cm_data must be 3D or 4D.")
 
     if imshow:
-        utils.draw_projection(sfcc[0])
+        utils_common.draw_projection(sfcc[0])
 
     return sfcc
 
@@ -182,60 +180,61 @@ def cm2sfcc(cm_data, covmap_num, imshow=False):
                     sfcc_temp[k, i, j] = cm_flatten[k, tempnum - 1]
     
     if imshow:
-        utils.draw_projection(numpy.mean(sfcc_temp, axis=0))
+        utils_common.draw_projection(numpy.mean(sfcc_temp, axis=0))
     
     return sfcc_temp
 
 # %% Example Usage
 if __name__ == "__main__":
-    # %% 示例变量
-    smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
-    order = ["ch1", "ch2", "ch3", "ch4"]
-    cm_data = numpy.random.rand(100, 4, 4)  # 示例 cm 数据
+    # %% example
+    # cms = numpy.random.rand(100, 4, 4) 
+    # # step 0: distribution
+    # smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
+    # order = ["ch1", "ch2", "ch3", "ch4"]
     
-    # %% seed sample
-    sample_seed = "sub1ex1"
+    # # step 1-4
+    # lmap, covmap = generate_lmap_and_covmap(smap)
+    # CM, CV = generate_connectivity_matrix(order)
+    # covmap_num = generate_covmap_num(covmap, CV)
+    # sfcc = cm2sfcc(cms, covmap_num, imshow=True)
     
-    smap, order = read_distribution(dataset="SEED")
-    cm_data = utils.load_cmdata2d('PCC', 'gamma', sample_seed, imshow=True)
+    # utils_common.draw_projection(sfcc)
     
-    # 文件1：生成 lmap 和 covmap
-    lmap, covmap = generate_lmap_and_covmap(smap)
+    # # %% seed sample
+    # dataset, sample, feature, band = 'SEED', 'sub1ex1', 'PCC', 'gamma'
+    # cms = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
     
-    # 文件2：生成连接矩阵和向量
-    CM, CV = generate_connectivity_matrix(order)
+    # # steo 0: read distribution
+    # smap, order = read_distribution(dataset='SEED')
     
-    # 文件3：生成数值卷积图
-    covmap_num = generate_covmap_num(covmap, CV)
-    
-    # 文件4：生成灰度图
-    sfcc = cm2sfcc(cm_data, covmap_num, imshow=True)
+    # # step 1-4
+    # lmap, covmap = generate_lmap_and_covmap(smap)
+    # CM, CV = generate_connectivity_matrix(order)
+    # covmap_num = generate_covmap_num(covmap, CV)
+    # sfcc = cm2sfcc(cms, covmap_num, imshow=True)
 
-    # 简化流程
-    cm_data_joint = utils.load_cmdata2d('PCC', 'joint', sample_seed, imshow=True)
-    sfcc_joint = generate_sfcc(cm_data_joint, dataset="SEED", imshow=True)
+    # # integration
+    # cms_joint = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
+    # sfcc_joint = generate_sfcc(cms_joint, dataset="SEED", imshow=True)
 
     # %% dreamer sample
-    sample_dreamer = 1
+    dataset, sample, feature, band = 'DREAMER', 'sub1', 'PCC', 'gamma'
+    # cms_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
     
-    smap_d, order_d = read_distribution("DREAMER")
-    cm_data_d = featureengineering_dreamer.read_cms(feature="PCC", freq_band="gamma", 
-                                                    subject=sample_dreamer, imshow=True)
+    # # steo 0: read distribution
+    # smap_d, order_d = read_distribution(dataset='DREAMER')
     
-    # 文件1：生成 lmap 和 covmap
-    lmap_d, covmap_d = generate_lmap_and_covmap(smap_d)
+    # # step 1-4
+    # lmap_d, covmap_d = generate_lmap_and_covmap(smap_d)
+    # CM_d, CV_d = generate_connectivity_matrix(order_d)
+    # covmap_num_d = generate_covmap_num(covmap_d, CV_d)
+    # sfcc_d = cm2sfcc(cms_d, covmap_num_d, imshow=True)
     
-    # 文件2：生成连接矩阵和向量
-    CM_d, CV_d = generate_connectivity_matrix(order_d)
+    # integration
+    cms_joint_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
+    sfcc_joint_d = generate_sfcc(cms_joint_d, dataset="DREAMER", imshow=True)
     
-    # 文件3：生成数值卷积图
-    covmap_num_d = generate_covmap_num(covmap_d, CV_d)
-    
-    # 文件4：生成灰度图
-    sfcc_d = cm2sfcc(cm_data_d, covmap_num_d)
-    utils.draw_projection(sfcc_d[0])
-    
-    # 简化流程
-    cm_data_joint_d = featureengineering_dreamer.read_cms(feature="PCC", freq_band="joint", 
-                                                    subject=sample_dreamer, imshow=True)
-    sfcc_joint_d = generate_sfcc(cm_data_joint_d, dataset="DREAMER", imshow=True)
+    import numpy as np
+    import featureengineering_dreamer
+    fcs = featureengineering_dreamer.interpolate_matrices(sfcc_joint_d)
+    utils_common.draw_projection(np.mean(fcs, axis=(0)))

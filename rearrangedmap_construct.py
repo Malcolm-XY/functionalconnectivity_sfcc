@@ -9,6 +9,8 @@ import os
 import pandas
 import numpy as np
 
+import utils_common
+
 # %% rearrangement by using orders
 def generate_rearrangedcm(cm_data, method, order="SEED", padding=True, imshow=True):
     """
@@ -32,7 +34,7 @@ def generate_rearrangedcm(cm_data, method, order="SEED", padding=True, imshow=Tr
         sorted_matrix = global_padding(sorted_matrix)
         
     if imshow:
-        utils.draw_projection(np.mean(sorted_matrix, axis=0))
+        utils_common.draw_projection(np.mean(sorted_matrix, axis=0))
 
     return sorted_matrix
     
@@ -98,7 +100,7 @@ def compute_sorted_global_avg(num_subjects=15, num_experiments=3, single=False):
     global_joint_avg = np.mean(joint_averages, axis=0)
     
     # Visualize the projection of the global average
-    utils.draw_projection(global_joint_avg)
+    utils_common.draw_projection(global_joint_avg)
     
     # Compute the global average across channels and sort the values
     global_channel_avg = np.mean(global_joint_avg, axis=0)

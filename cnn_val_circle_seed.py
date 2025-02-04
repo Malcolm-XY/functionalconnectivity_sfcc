@@ -8,14 +8,19 @@ Created on Fri Jan  3 14:34:33 2025
 import os
 import numpy as np
 import pandas as pd
+import torch
 
-import utils
 import cnn_validation
+
+import utils_common
 import covmap_construct
 import rearrangedmap_construct
 
+# %% Validation Circle
 def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_range):
-    labels = utils.get_label()
+    # labels and targets
+    labels = utils_common.read_labels_seed()
+    targets = torch.tensor(labels)
     
     results_entry = []
     for sub in subject_range:
@@ -23,23 +28,23 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
             identifier = f'sub{sub}ex{ex}'
             print(f'Processing {identifier}...')
             
-            # Get cm data
-            cmdata = utils.load_cmdata(feature, 'joint', identifier)
+            # get connectivity matrices
+            cms = utils_common.load_cms(dataset='SEED', experiment=identifier, feature=feature, band='joint', imshow=True)
             
+            # feature engineering engineering; functional connectivity networks
             if fcnetwork == 'sfcc':
-                # Draw sfcc
-                fcdata = covmap_construct.generate_sfcc(cmdata, "SEED", imshow=True)
+                fcs = covmap_construct.generate_sfcc(cms, "SEED", imshow=True)
             elif fcnetwork == 'cm':
-                fcdata = cmdata
-                fcdata = rearrangedmap_construct.global_padding(fcdata)
-                utils.draw_projection(np.mean(fcdata, axis=(0,1)))
+                fcs = cms
+                fcs = rearrangedmap_construct.global_padding(fcs)
+                utils_common.draw_projection(np.mean(fcs, axis=0))
             elif fcnetwork == 'mx':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'MX', imshow = True)
             elif fcnetwork == 'vc':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'VC', imshow = True)
             
             # Validation
-            result = cnn_validation.cnn_validation(model, fcdata, labels)
+            result = cnn_validation.cnn_validation(model, fcs, targets)
             
             # Add identifier to the result
             result['Identifier'] = f'sub{sub}ex{ex}'
@@ -50,8 +55,11 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
     
     return results_entry
 
+# %% Cross Validation Circle
 def cnn_cross_validation_circle(model, method, feature, subject_range, experiment_range):
-    labels = utils.get_label()
+    # labels and targets
+    labels = utils_common.read_labels_seed()
+    targets = torch.tensor(labels)
     
     results_entry = []
     for sub in subject_range:
@@ -59,23 +67,23 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
             identifier = f'sub{sub}ex{ex}'
             print(f'Processing {identifier}...')
 
-            # Get cm data
-            cmdata = utils.load_cmdata(feature, 'joint', identifier, imshow=True)
+            # get connectivity matrices
+            cms = utils_common.load_cms(dataset='SEED', experiment=identifier, feature=feature, band='joint', imshow=True)
             
+            # feature engineering; functional connectivity networks
             if method == 'sfcc':
-                # Draw sfcc
-                fcdata = covmap_construct.generate_sfcc(cmdata, dataset="SEED", imshow=True)
+                fcs = covmap_construct.generate_sfcc(cms, dataset="SEED", imshow=True)
             elif method == 'cm':
-                fcdata = cmdata
-                fcdata = rearrangedmap_construct.global_padding(fcdata)
-                utils.draw_projection(np.mean(fcdata, axis=(0,1)))
+                fcs = cms
+                fcs = rearrangedmap_construct.global_padding(fcs)
+                utils_common.draw_projection(np.mean(fcs, axis=(0,1)))
             elif method == 'mx':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'MX', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'MX', imshow = True)
             elif method == 'vc':
-                fcdata = rearrangedmap_construct.generate_rearrangedcm(cmdata, 'VC', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'VC', imshow = True)
             
             # Validation
-            result = cnn_validation.cnn_cross_validation(model, fcdata, labels)
+            result = cnn_validation.cnn_cross_validation(model, fcs, targets)
             
             # Add identifier to the result
             result['Identifier'] = f'sub{sub}ex{ex}'
@@ -86,8 +94,8 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
     
     return results_entry
 
+# %% Save Result Actions
 from openpyxl import load_workbook
-
 def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fold Results'):
     """
     Appends results to an existing Excel file or creates a new file if it doesn't exist.
@@ -140,9 +148,9 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
     print(f"Results successfully saved to: {output_path}")
     return output_path
 
+# %% End Program Actions
 import time
 import threading
-
 def shutdown_with_countdown(countdown_seconds=30):
     """
     Initiates a shutdown countdown, allowing the user to cancel shutdown within the given time.
@@ -197,7 +205,7 @@ def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
     if shutdown:
         shutdown_with_countdown(countdown_seconds)
 
-# %% Usage; training settings
+# %% Usage; Training settings
 from models import models #, models_multiscale
 
 model = models.MSCNN_3_2layers_cv_235_adaptive_maxpool_3()

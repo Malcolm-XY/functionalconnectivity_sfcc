@@ -6,9 +6,11 @@ Created on Tue Feb  4 15:43:46 2025
 """
 
 import os
+import h5py
+
 import numpy as np
 import pandas as pd
-import h5py
+
 import scipy.io
 import scipy.ndimage
 import matplotlib.pyplot as plt
@@ -212,7 +214,7 @@ def load_cms_dreamer(experiment, feature='PCC', band='joint', imshow=True):
         raise ValueError(f"Unsupported feature: {feature}")
     
     # 拼接数据文件路径
-    path_file = os.path.join(path_folder, f'sub{experiment}.npy')
+    path_file = os.path.join(path_folder, f'{experiment}.npy')
     
     # 加载数据
     cms_load = np.load(path_file, allow_pickle=True).item()
@@ -297,7 +299,8 @@ if __name__ == '__main__':
     draemer_sample_2 = load_dreamer_filtered(dreamer_sub_sample, band=dreamer_fre_sample_2)
     
     # cms
-    experiment_sample_d, feature_sample_d, freq_sample_d1, freq_sample_d2 = 1, 'PCC', 'alpha', 'joint'
+    experiment_sample_d, feature_sample_d, freq_sample_d1, freq_sample_d2 = 'sub1', 'PCC', 'alpha', 'joint'
     dreamer_cms_sample_1 = load_cms(dataset='DREAMER', experiment=experiment_sample_d, feature=feature_sample_d, band=freq_sample_d1)
     dreamer_cms_sample_1 = load_cms(dataset='DREAMER', experiment=experiment_sample_d, feature=feature_sample_d, band=freq_sample_d2)
     
+    labels_DREAMER = read_labels_dreamer()
