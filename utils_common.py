@@ -138,7 +138,11 @@ def load_seed(subject, experiment, band='full'):
     
     if band == 'full':
         path_data = os.path.join(path_2, identifier + '.mat')
-        data = read_mat(path_data)
+        data_temp = read_mat(path_data)
+        
+        data_list = [data_temp[dat] for dat in data_temp]
+        data = np.hstack(data_list)
+        
     else:
         data = read_filtered_eegdata(path_3, identifier)
 
