@@ -177,18 +177,18 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "arousal", range(1, 23)
+# fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "valence", range(1, 24)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-# fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "arousal", range(1, 23)
+# fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "valence", range(1, 24)
 
 # # trainning and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -199,26 +199,26 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 3; vc
-# fcnetwork, feature, emotion, subject_range = 'vc', 'PCC', "arousal", range(1, 23)
+fcnetwork, feature, emotion, subject_range = 'vc', 'PCC', "valence", range(1, 24)
 
-# # trainning and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
-# fcnetwork, feature, emotion, subject_range = 'ms', 'PCC', "arousal", range(1, 23)
+fcnetwork, feature, emotion, subject_range = 'mx', 'PCC', "valence", range(1, 24)
 
-# # trainning and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=False, countdown_seconds=30)
+end_program_actions(play_sound=True, shutdown=True, countdown_seconds=120)
