@@ -503,22 +503,22 @@ if __name__ == "__main__":
     import utils_common
     
     # %% Read and Filter Sample EEG
-    # dreamer, eeg, electrodes = utils_common.load_dreamer()
-    # eeg_sample = eeg[0].transpose()
+    dreamer, eeg, electrodes = utils_common.load_dreamer()
+    eeg_sample = eeg[0].transpose()
     
-    # # filter
-    # calculated_filtered_eeg_dict = filter_eeg(eeg_sample, verbose=True)
+    # filter
+    calculated_filtered_eeg_dict = filter_eeg(eeg_sample, verbose=True)
     
-    # # filter and save
-    # # filter_eeg_and_save_circle()
+    # filter and save
+    # filter_eeg_and_save_circle()
     
-    # # read filtered
-    # loaded_filtered_eeg = read_filtered_eegdata('sub1', freq_band="joint")
+    # read filtered
+    loaded_filtered_eeg = read_filtered_eegdata('sub1', freq_band="joint")
     
     # %% Feature Engineeing; Compute Connectivity Matrices
     # correlation matrices
-    # cms_pcc = compute_synchronization(subject_sample, method="PCC", freq_band="joint")
-    # cms_plv = compute_synchronization(subject_sample, method="PLV", freq_band="joint")
+    cms_pcc = compute_synchronization('sub1', method="PCC", freq_band="joint")
+    cms_plv = compute_synchronization('sub1', method="PLV", freq_band="joint")
     
     # compute correlation matrices and save
     # compute_cms_and_save_circle(method="pcc")

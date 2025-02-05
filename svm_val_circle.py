@@ -8,26 +8,28 @@ Created on Thu Dec 12 11:15:08 2024
 import os
 import pandas as pd
 
-import utils
+import utils_common
 import svm_validation
+
 
 # Loop through subjects and exercises
 # Initialize a list to store all results
 results = []
 
 # Loop through subjects and exercises
-for subject in range(1, 11):
+for subject in range(1, 2):
     for experiment in range(1, 4):
         identifier = f"sub{subject}ex{experiment}"
         print(f"Processing: {identifier}")
         
-        # Get labels
-        labels = utils.get_label()
-        # Get cm data
-        cmdata = utils.load_cmdata('PLV', 'alpha', identifier)
+        # get labels
+        labels = utils_common.read_labels_seed()
+        # get connectivity matrices
+        cms = utils_common.load_cms_seed(experiment=identifier, feature='PCC')
+        data = cms.reshape(cms.shape[0], -1)
         
         # Evaluate using the SVM evaluation function
-        result_entry = svm_validation.svm_evaluation_single(cmdata, labels, 'sequential', 0.7)
+        result_entry = svm_validation.svm_evaluation_single(data, labels, 'sequential', 0.7)
         
         # Ensure 'Identifier' is the first column by creating a new ordered dictionary
         result_entry = {"Identifier": identifier, **result_entry}

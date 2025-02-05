@@ -14,8 +14,8 @@ def svm_evaluation_single(data, labels, partitioning='sequential', rate=0.7):
     Train and evaluate an SVM classifier with given data and labels.
 
     Parameters:
-        data (array-like): Feature data for training and testing.
-        labels (array-like): Corresponding labels for the data.
+        data (array-like): Feature data for training and testing. shape (samples, features)
+        labels (array-like): Corresponding labels for the data. shape (samples,)
         partitioning (str): Partitioning method, 'sequential' or 'randomized'.
         rate (float): Proportion of data used for training (0 < rate < 1).
 
@@ -68,14 +68,13 @@ def svm_evaluation_single(data, labels, partitioning='sequential', rate=0.7):
     
     return result_entry
 
-# 假设 data 和 labels 已经定义
-# labels: shape (samples,)
-# data: shape (samples, features)
-
-# import utils
-# get label and cmdata
-# labels = utils.get_label()
-# cmdata = utils.load_cmdata('PCC', 'joint', 'sub1ex1')
-
-# accuracy_sequential = svm_evaluation_single(cmdata, labels)
-# accuracy_randomized = svm_evaluation_single(cmdata, labels, partitioning='randomized')
+if __name__ == '__main__':
+    import utils_common
+    sample_experiment, sample_feature = 'sub1ex1', 'PCC'
+    cms = utils_common.load_cms_seed(sample_experiment, sample_feature)
+    data = cms.reshape(cms.shape[0], -1)
+    
+    labels = utils_common.read_labels_seed()
+    
+    result_entry_sequential = svm_evaluation_single(data, labels)
+    result_entry_randomized = svm_evaluation_single(data, labels, 'randomized')

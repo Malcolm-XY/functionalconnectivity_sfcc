@@ -187,48 +187,48 @@ def cm2sfcc(cm_data, covmap_num, imshow=False):
 # %% Example Usage
 if __name__ == "__main__":
     # %% example
-    # cms = numpy.random.rand(100, 4, 4) 
-    # # step 0: distribution
-    # smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
-    # order = ["ch1", "ch2", "ch3", "ch4"]
+    cms = numpy.random.rand(100, 4, 4) 
+    # step 0: distribution
+    smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
+    order = ["ch1", "ch2", "ch3", "ch4"]
     
-    # # step 1-4
-    # lmap, covmap = generate_lmap_and_covmap(smap)
-    # CM, CV = generate_connectivity_matrix(order)
-    # covmap_num = generate_covmap_num(covmap, CV)
-    # sfcc = cm2sfcc(cms, covmap_num, imshow=True)
+    # step 1-4
+    lmap, covmap = generate_lmap_and_covmap(smap)
+    CM, CV = generate_connectivity_matrix(order)
+    covmap_num = generate_covmap_num(covmap, CV)
+    sfcc = cm2sfcc(cms, covmap_num, imshow=True)
     
-    # utils_common.draw_projection(sfcc)
+    utils_common.draw_projection(sfcc)
     
-    # # %% seed sample
-    # dataset, sample, feature, band = 'SEED', 'sub1ex1', 'PCC', 'gamma'
-    # cms = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
+    # %% seed sample
+    dataset, sample, feature, band = 'SEED', 'sub1ex1', 'PCC', 'gamma'
+    cms = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
     
-    # # steo 0: read distribution
-    # smap, order = read_distribution(dataset='SEED')
+    # steo 0: read distribution
+    smap, order = read_distribution(dataset='SEED')
     
-    # # step 1-4
-    # lmap, covmap = generate_lmap_and_covmap(smap)
-    # CM, CV = generate_connectivity_matrix(order)
-    # covmap_num = generate_covmap_num(covmap, CV)
-    # sfcc = cm2sfcc(cms, covmap_num, imshow=True)
+    # step 1-4
+    lmap, covmap = generate_lmap_and_covmap(smap)
+    CM, CV = generate_connectivity_matrix(order)
+    covmap_num = generate_covmap_num(covmap, CV)
+    sfcc = cm2sfcc(cms, covmap_num, imshow=True)
 
-    # # integration
-    # cms_joint = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
-    # sfcc_joint = generate_sfcc(cms_joint, dataset="SEED", imshow=True)
+    # integration
+    cms_joint = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
+    sfcc_joint = generate_sfcc(cms_joint, dataset="SEED", imshow=True)
 
     # %% dreamer sample
     dataset, sample, feature, band = 'DREAMER', 'sub1', 'PCC', 'gamma'
-    # cms_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
+    cms_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
     
-    # # steo 0: read distribution
-    # smap_d, order_d = read_distribution(dataset='DREAMER')
+    # steo 0: read distribution
+    smap_d, order_d = read_distribution(dataset='DREAMER')
     
-    # # step 1-4
-    # lmap_d, covmap_d = generate_lmap_and_covmap(smap_d)
-    # CM_d, CV_d = generate_connectivity_matrix(order_d)
-    # covmap_num_d = generate_covmap_num(covmap_d, CV_d)
-    # sfcc_d = cm2sfcc(cms_d, covmap_num_d, imshow=True)
+    # step 1-4
+    lmap_d, covmap_d = generate_lmap_and_covmap(smap_d)
+    CM_d, CV_d = generate_connectivity_matrix(order_d)
+    covmap_num_d = generate_covmap_num(covmap_d, CV_d)
+    sfcc_d = cm2sfcc(cms_d, covmap_num_d, imshow=True)
     
     # integration
     cms_joint_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
