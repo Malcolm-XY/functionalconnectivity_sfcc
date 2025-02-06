@@ -18,7 +18,7 @@ import covmap_construct
 import rearrangedmap_construct
 
 # %% Cross Validation Circle
-def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension="arousal", subject_range=range(1,2)):
+def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension='arousal', subject_range=range(1,2)):
     # labels and targets
     labels = utils_common.read_labels_dreamer()
     labels = labels[emotion_dimension]
@@ -94,7 +94,7 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
 
     # Append to existing Excel file or create a new one
     if os.path.exists(output_path):
-        print(f"Appending data to existing file: {output_path}")
+        print(f'Appending data to existing file: {output_path}')
         with pd.ExcelWriter(output_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
             # Get the existing workbook
             existing_workbook = load_workbook(output_path)
@@ -108,10 +108,10 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
                 # Write new sheet if not exists
                 results_df.to_excel(writer, sheet_name=sheet_name, index=False)
     else:
-        print(f"Creating new file: {output_path}")
+        print(f'Creating new file: {output_path}')
         results_df.to_excel(output_path, index=False, sheet_name=sheet_name)
 
-    print(f"Results successfully saved to: {output_path}")
+    print(f'Results successfully saved to: {output_path}')
     return output_path
 
 # %% End Program Actions
@@ -129,7 +129,7 @@ def shutdown_with_countdown(countdown_seconds=120):
         user_input = input("\nPress 'c' and Enter to cancel shutdown: ").strip().lower()
         if user_input == 'c':
             shutdown_flag = False
-            print("Shutdown cancelled.")
+            print('Shutdown cancelled.')
 
     # Flag to determine whether to proceed with shutdown
     shutdown_flag = True
@@ -141,15 +141,15 @@ def shutdown_with_countdown(countdown_seconds=120):
     # Countdown timer
     print(f"Shutdown scheduled in {countdown_seconds} seconds. Press 'c' to cancel.")
     for i in range(countdown_seconds, 0, -1):
-        print(f"Time remaining: {i} seconds", end="\r")
+        print(f'Time remaining: {i} seconds', end='\r')
         time.sleep(1)
 
     # Check the flag after countdown
     if shutdown_flag:
-        print("\nShutdown proceeding...")
-        os.system("shutdown /s /t 1")  # Execute shutdown command
+        print('\nShutdown proceeding...')
+        os.system('shutdown /s /t 1')  # Execute shutdown command
     else:
-        print("\nShutdown aborted.")
+        print('\nShutdown aborted.')
 
 def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
     """
@@ -177,7 +177,7 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-# fcnetwork, feature, emotion, subject_range = 'sfcc', 'PCC', "valence", range(1, 24)
+# fcnetwork, feature, emotion, subject_range = 'sfcc', 'PLV', 'valence', range(1, 24)
 
 # # trainning and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -188,7 +188,18 @@ model = models.CNN_2layers_adaptive_maxpool_3()
 # save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-# fcnetwork, feature, emotion, subject_range = 'cm', 'PCC', "valence", range(1, 24)
+fcnetwork, feature, emotion, subject_range = 'cm', 'PLV', 'valence', range(1, 24)
+
+# trainning and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
+
+# %% validation 3; vc
+# fcnetwork, feature, emotion, subject_range = 'vc', 'PLV', 'valence', range(1, 24)
 
 # # trainning and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -198,27 +209,16 @@ model = models.CNN_2layers_adaptive_maxpool_3()
 # filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 # save_results_to_xlsx_append(results, output_dir, filename)
 
-# %% validation 3; vc
-fcnetwork, feature, emotion, subject_range = 'vc', 'PCC', "valence", range(1, 24)
-
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
-
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
-
 # %% validation 4; mx
-fcnetwork, feature, emotion, subject_range = 'mx', 'PCC', "valence", range(1, 24)
+# fcnetwork, feature, emotion, subject_range = 'mx', 'PLV', 'valence', range(1, 24)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# # trainning and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=True, countdown_seconds=120)
+end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120)
