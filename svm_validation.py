@@ -7,7 +7,53 @@ Created on Wed Dec 11 21:09:50 2024
 
 import numpy as np
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, classification_report, f1_score
+
+def svm_5fold_cross_validation(X, y, kernel='rbf', C=1.0, gamma='scale'):
+    """
+    Perform 5-fold cross-validation using SVM.
+    
+    Parameters:
+        X (array-like): Feature matrix (samples x features).
+        y (array-like): Target labels.
+        kernel (str): Kernel type for SVM (default: 'rbf').
+        C (float): Regularization parameter (default: 1.0).
+        gamma (str or float): Kernel coefficient (default: 'scale').
+    
+    Returns:
+        dict: A dictionary containing accuracy, class-wise F1 scores, and detailed classification report.
+    """
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    accuracies = []
+    f1_scores = []
+    reports = []
+    
+    for train_index, test_index in skf.split(X, y):
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        
+        model = SVC(kernel=kernel, C=C, gamma=gamma)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        
+        acc = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred, average=None)  # Per-class F1 scores
+        report = classification_report(y_test, y_pred, output_dict=True)
+        
+        accuracies.append(acc)
+        f1_scores.append(f1)
+        reports.append(report)
+    
+    # Compute mean accuracy and F1-scores
+    mean_accuracy = np.mean(accuracies)
+    mean_f1_scores = np.mean(np.array(f1_scores), axis=0)
+    
+    return {
+        'Accuracy': mean_accuracy,
+        'Class_F1_Scores': mean_f1_scores,
+        'Detailed_Report': reports
+    }
 
 def svm_evaluation_single(data, labels, partitioning='sequential', rate=0.7):
     """
@@ -68,13 +114,65 @@ def svm_evaluation_single(data, labels, partitioning='sequential', rate=0.7):
     
     return result_entry
 
+def cms_array(matrices):
+    channel_0 = matrices[:, 0, :, :]
+    channel_1 = matrices[:, 1, :, :]
+    channel_2 = matrices[:, 2, :, :]
+    
+    channel_0_array = matrices_lower_triangles(channel_0)
+    channel_1_array = matrices_lower_triangles(channel_1)
+    channel_2_array = matrices_lower_triangles(channel_2)
+    
+    channel_0_array = np.array(channel_0_array)
+    channel_1_array = np.array(channel_1_array)
+    channel_2_array = np.array(channel_2_array)
+    
+    channel_full_array = np.hstack((channel_0_array, channel_1_array, channel_2_array))
+    
+    return channel_0_array, channel_1_array, channel_2_array, channel_full_array
+
+def matrix_lower_triangle(matrix):
+    tril_indices = np.tril_indices(matrix.shape[0], k=-1)
+    lower_triangle_values = matrix[tril_indices]
+    return lower_triangle_values
+
+def matrices_lower_triangles(matrices):
+    samples = []
+    for matrix in matrices:
+        tril_indices = np.tril_indices(matrix.shape[0], k=-1)
+        lower_triangle_values = matrix[tril_indices]
+        samples.append(lower_triangle_values)
+    
+    return samples
+
 if __name__ == '__main__':
     import utils_common
-    sample_experiment, sample_feature = 'sub1ex1', 'PCC'
-    cms = utils_common.load_cms_seed(sample_experiment, sample_feature)
-    data = cms.reshape(cms.shape[0], -1)
+    # %% Example usage
+    # sample_experiment, sample_feature = 'sub1ex1', 'PCC'
+    # cms = utils_common.load_cms_seed(sample_experiment, sample_feature)
     
-    labels = utils_common.read_labels_seed()
+    # alpha, beta, gamma, data = cms_array(cms)
     
-    result_entry_sequential = svm_evaluation_single(data, labels)
-    result_entry_randomized = svm_evaluation_single(data, labels, 'randomized')
+    # labels = utils_common.read_labels_seed()
+    
+    # # single validation
+    # result_entry_sequential = svm_evaluation_single(data, labels)
+    # result_entry_randomized = svm_evaluation_single(data, labels, 'randomized')
+    
+    # # cross validation
+    # results = svm_5fold_cross_validation(data, labels)
+    
+    # %% Circle
+    subject_range, experiment_range, selected_feature, dataset = range(1, 2), range(1, 4), 'PCC', 'SEED'
+    result_entries = []
+    labels = utils_common.read_labels(dataset)
+    
+    for sub in subject_range:
+        for ex in experiment_range:
+            identifier = f'sub{sub}ex{ex}'
+            cms = utils_common.load_cms(dataset, experiment=identifier, feature=selected_feature)
+            
+            alpha, beta, gamma, data = cms_array(cms)
+            
+            result_entry = svm_5fold_cross_validation(data, labels)
+            result_entries.append(result_entry)
