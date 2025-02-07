@@ -86,10 +86,26 @@ def train_svm_tf(data, labels, partitioning='sequential', rate=0.7, epochs=50, b
 
 if __name__ == '__main__':
     import utils_common
-    sample_experiment, sample_feature = 'sub1ex1', 'PCC'
-    cms = utils_common.load_cms_seed(sample_experiment, sample_feature)
-    data = cms.reshape(cms.shape[0], -1)
-    labels = utils_common.read_labels_seed()
     
-    result_entry_sequential = train_svm_tf(data, labels)
-    result_entry_randomized = train_svm_tf(data, labels, partitioning='randomized')
+    # %% Example usage
+    # sample_experiment, sample_feature = 'sub1ex1', 'PCC'
+    # cms = utils_common.load_cms_seed(sample_experiment, sample_feature)
+    # data = cms.reshape(cms.shape[0], -1)
+    # labels = utils_common.read_labels_seed()
+    
+    # result_entry_sequential = train_svm_tf(data, labels)
+    # result_entry_randomized = train_svm_tf(data, labels, partitioning='randomized')
+    
+    # %% 
+    subject_range, experiment_range, selected_feature, dataset = range(1, 16), range(1, 4), 'PCC', 'SEED'
+    
+    result_entry_randomized = []
+    labels = utils_common.read_labels(dataset)
+    for sub in subject_range:
+        for ex in experiment_range:
+            identifier = f'sub{sub}ex{ex}'
+            cms = utils_common.load_cms(dataset, identifier, selected_feature)
+            data = cms.reshape(cms.shape[0], -1)
+            
+            result_entry_randomized_temp = train_svm_tf(data, labels, partitioning='randomized')
+            result_entry_randomized.append(result_entry_randomized_temp)

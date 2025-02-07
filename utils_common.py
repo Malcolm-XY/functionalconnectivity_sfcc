@@ -126,6 +126,13 @@ def draw_projection(sample_projection):
             plt.title(f"Channel {i + 1} Visualization")
             plt.show()
 
+def read_labels(dataset='SEED'):
+    if dataset == 'SEED':
+        labels = read_labels_seed()
+    elif dataset == 'DREAMER':
+        labels = read_labels_dreamer()
+    return labels
+
 # %% SEED Specific Functions
 def load_seed(subject, experiment, band='full'):
     path_current = os.getcwd()
