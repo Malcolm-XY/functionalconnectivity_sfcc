@@ -21,8 +21,14 @@ def plot_comparison_chart(methods, accuracy, f1_score, significance_results, fea
     - _max: float or None y 轴最大值（如果为 None，则自动调整）
     """
 
-    # 颜色：SFCC 设为红色，其他方法为灰色
-    colors = ['gray' if method != "SFCC" else 'red' for method in methods]
+    # 颜色方案
+    color_map = {
+        "SFCC": "#1f77b4",    # 红色
+        "CM": "#7f7f7f",      # 灰色
+        "MCSR-CM": "#ff7f0e", # 橙色
+        "VCSR-CM": "#d62728"  # 蓝色
+    }
+    colors = [color_map[method] for method in methods]
 
     # 生成图像
     fig, axs = plt.subplots(1, 2, figsize=(12, 5))
@@ -34,13 +40,13 @@ def plot_comparison_chart(methods, accuracy, f1_score, significance_results, fea
     # 绘制 Accuracy 柱状图
     axs[0].bar(methods, accuracy, color=colors, alpha=0.7)
     axs[0].set_ylabel("Accuracy")
-    axs[0].set_title("Accuracy Comparison")
+    axs[0].set_title(f"Accuracy Comparison Across Methods ({feature_name})")
     axs[0].set_ylim(_min, acc_max)  # 自动调整 y 轴
 
     # 绘制 F1 Score 柱状图
     axs[1].bar(methods, f1_score, color=colors, alpha=0.7)
     axs[1].set_ylabel("F1 Score")
-    axs[1].set_title("F1 Score Comparison")
+    axs[1].set_title(f"F1 Score Comparison Across Methods ({feature_name})")
     axs[1].set_ylim(_min, f1_max)  # 自动调整 y 轴
 
     # 标注数值
@@ -69,10 +75,9 @@ def plot_comparison_chart(methods, accuracy, f1_score, significance_results, fea
             add_significance(axs[0], sfcc_index, i, max(accuracy) + offset, "**")
             add_significance(axs[1], sfcc_index, i, max(f1_score) + offset, "**")
 
-    # 添加 caption（功能特性说明）
-    caption_text = f"{feature_name} | Functional Connectivity Networks"
+    # 修改 caption
+    caption_text = f"Comparison of Accuracy and F1 Score Across Methods Using {feature_name}"
     fig.text(0.5, -0.02, caption_text, ha='center', va='top', fontsize=12, fontweight='bold')
-
 
     plt.tight_layout()
     plt.show()
@@ -89,7 +94,7 @@ significance_results = {
     "VCSR-CM": "p<0.01"
 }
 
-plot_comparison_chart(methods, accuracy, f1_score, significance_results, feature_name='Feature: PCC')
+plot_comparison_chart(methods, accuracy, f1_score, significance_results, feature_name='PCC')
 
 # PLV
 methods = ["SFCC", "CM", "MCSR-CM", "VCSR-CM"]
@@ -102,7 +107,7 @@ significance_results = {
     "VCSR-CM": "p<0.01"
 }
 
-plot_comparison_chart(methods, accuracy, f1_score, significance_results, feature_name='Feature: PLV')
+plot_comparison_chart(methods, accuracy, f1_score, significance_results, feature_name='PLV')
 
 # %% DREAMER dataset; PCC
 # # PCC; Arousal
