@@ -44,9 +44,9 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension='ar
             fcs = rearrangedmap_construct.global_padding(fcs)
             utils_common.draw_projection(np.mean(fcs, axis=0))
         elif fcnetwork == 'mx':
-            fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'MX', order="DREAMER", padding=True, imshow = True)
+            fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'MX', electrode_order="DREAMER", padding=True, imshow = True)
         elif fcnetwork == 'vc':
-            fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'VC', order="DREAMER", padding=True, imshow = True)
+            fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'VC', electrode_order="DREAMER", padding=True, imshow = True)
         
         # Validation
         result = cnn_validation.cnn_cross_validation(model, fcs, targets)

@@ -39,9 +39,9 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
                 fcs = rearrangedmap_construct.global_padding(fcs)
                 utils_common.draw_projection(np.mean(fcs, axis=0))
             elif fcnetwork == 'mx':
-                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'MX', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'MX', imshow = True)
             elif fcnetwork == 'vc':
-                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'VC', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'VC', imshow = True)
             
             # Validation
             result = cnn_validation.cnn_validation(model, fcs, targets)
@@ -78,9 +78,9 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
                 fcs = rearrangedmap_construct.global_padding(fcs)
                 utils_common.draw_projection(np.mean(fcs, axis=(0,1)))
             elif method == 'mx':
-                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'MX', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'MX', imshow = True)
             elif method == 'vc':
-                fcs = rearrangedmap_construct.generate_rearrangedcm(cms, 'VC', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'VC', imshow = True)
             
             # Validation
             result = cnn_validation.cnn_cross_validation(model, fcs, targets)
