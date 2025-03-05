@@ -8,20 +8,22 @@ Created on Sun Feb  2 15:28:38 2025
 import os
 import numpy as np
 import pandas as pd
+
 import torch
 
 import cnn_validation
+import utils_feature_loading
+import utils_visualization
 
-import utils_common
-import featureengineering_dreamer
 import covmap_construct
 import rearrangedmap_construct
 
 # %% Cross Validation Circle
 def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension='arousal', subject_range=range(1,2)):
     # labels and targets
-    labels = utils_common.read_labels_dreamer()
+    labels = utils_feature_loading.read_labels('dreamer')
     labels = labels[emotion_dimension]
+    labels = np.reshape(labels, -1)
     labels_tensor = torch.tensor(labels)
     unique_classes, targets = torch.unique(labels_tensor, sorted=True, return_inverse=True)
     
@@ -29,25 +31,30 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension='ar
     for subject in subject_range:
         identifier = f'sub{subject}'
         print(f'Processing {identifier}...')
-        
-        # get connectivity matrices       
-        cms = utils_common.load_cms(dataset='DREAMER', experiment=identifier, feature=feature, band='joint', imshow=True)
-        
+    
+        # get connectivity matrices
+        fcs = utils_feature_loading.read_fcs('dreamer', identifier, feature, band='joint')
+    
         # feature engineering; functional connectivity networks
         if fcnetwork == 'sfcc':
             # Draw sfcc
-            fcs = covmap_construct.generate_sfcc(cms, "DREAMER", imshow=False)
-            fcs = featureengineering_dreamer.interpolate_matrices(fcs)
-            utils_common.draw_projection(np.mean(fcs, axis=0))
+            fcs = covmap_construct.generate_sfcc(fcs, "SEED", imshow=False)
+            fcs = np.stack([fcs['alpha'], fcs['beta'], fcs['gamma']], axis=1)
+            
+            utils_visualization.draw_projection(np.mean(fcs, axis=0))
         elif fcnetwork == 'cm':
-            fcs = cms
+            fcs = fcs
+            fcs = np.stack([fcs['alpha'], fcs['beta'], fcs['gamma']], axis=1)
             fcs = rearrangedmap_construct.global_padding(fcs)
-            utils_common.draw_projection(np.mean(fcs, axis=0))
+            
+            utils_visualization.draw_projection(np.mean(fcs, axis=0))
         elif fcnetwork == 'mx':
-            fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'MX', electrode_order="DREAMER", padding=True, imshow = True)
+            fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'MX', electrode_order="DREAMER", padding=True,
+                                                                  imshow=True)
         elif fcnetwork == 'vc':
-            fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'VC', electrode_order="DREAMER", padding=True, imshow = True)
-        
+            fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'VC', electrode_order="DREAMER", padding=True,
+                                                                  imshow=True)
+    
         # Validation
         result = cnn_validation.cnn_cross_validation(model, fcs, targets)
         
@@ -56,7 +63,7 @@ def cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension='ar
         results_entry.append(result)
 
     # print(f'Final Results: {results_entry}')
-    print('K-Fold Validation compelete\n')
+    print('K-Fold Validation complete\n')
     
     return results_entry
 
@@ -114,62 +121,61 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
     print(f'Results successfully saved to: {output_path}')
     return output_path
 
-# %% End Program Actions
-import time
-import threading
-def shutdown_with_countdown(countdown_seconds=120):
-    """
-    Initiates a shutdown countdown, allowing the user to cancel shutdown within the given time.
+# %% Example Usage
+def example_usage():
+    # Parameters
+    emotion_dimension = 'arousal'
+    subject_range = range(1, 2)
+    fcnetwork = 'sfcc'
+    feature = 'pcc'
+    from models import models #, models_multiscale
+    model = models.CNN_2layers_adaptive_maxpool_3()
+    
+    # labels and targets
+    labels = utils_feature_loading.read_labels('dreamer')
+    labels = labels[emotion_dimension]
+    labels_tensor = torch.tensor(labels)
+    unique_classes, targets = torch.unique(labels_tensor, sorted=True, return_inverse=True)
+    
+    results_entry = []
+    for subject in subject_range:
+        identifier = f'sub{subject}'
+        print(f'Processing {identifier}...')
+    
+        # get connectivity matrices
+        fcs = utils_feature_loading.read_fcs('dreamer', identifier, feature, band='joint')
+    
+        # feature engineering; functional connectivity networks
+        if fcnetwork == 'sfcc':
+            # Draw sfcc
+            fcs = covmap_construct.generate_sfcc(fcs, "DREAMER", imshow=False)
+            fcs = np.stack([fcs['alpha'], fcs['beta'], fcs['gamma']], axis=1)
 
-    Args:
-        countdown_seconds (int): The number of seconds to wait before shutting down.
-    """
-    def cancel_shutdown():
-        nonlocal shutdown_flag
-        user_input = input("\nPress 'c' and Enter to cancel shutdown: ").strip().lower()
-        if user_input == 'c':
-            shutdown_flag = False
-            print('Shutdown cancelled.')
+            utils_visualization.draw_projection(np.mean(fcs, axis=0))
+        elif fcnetwork == 'cm':
+            fcs = fcs
+            fcs = rearrangedmap_construct.global_padding(fcs)
+            fcs = np.stack([fcs['alpha'], fcs['beta'], fcs['gamma']], axis=1)
 
-    # Flag to determine whether to proceed with shutdown
-    shutdown_flag = True
+            utils_visualization.draw_projection(np.mean(fcs, axis=0))
+        elif fcnetwork == 'mx':
+            fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'MX', electrode_order="DREAMER", padding=True,
+                                                                  imshow=True)
+        elif fcnetwork == 'vc':
+            fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'VC', electrode_order="DREAMER", padding=True,
+                                                                  imshow=True)
+    
+        # Validation
+        result = cnn_validation.cnn_cross_validation(model, fcs, targets)
+        
+        # Add identifier to the result
+        result['Identifier'] = f'sub{subject}'
+        results_entry.append(result)
 
-    # Start a thread to listen for user input
-    input_thread = threading.Thread(target=cancel_shutdown, daemon=True)
-    input_thread.start()
-
-    # Countdown timer
-    print(f"Shutdown scheduled in {countdown_seconds} seconds. Press 'c' to cancel.")
-    for i in range(countdown_seconds, 0, -1):
-        print(f'Time remaining: {i} seconds', end='\r')
-        time.sleep(1)
-
-    # Check the flag after countdown
-    if shutdown_flag:
-        print('\nShutdown proceeding...')
-        os.system('shutdown /s /t 1')  # Execute shutdown command
-    else:
-        print('\nShutdown aborted.')
-
-def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
-    """
-    Performs actions at the end of the program, such as playing a sound or shutting down the system.
-
-    Args:
-        play_sound (bool): If True, plays a notification sound.
-        shutdown (bool): If True, initiates shutdown with a countdown.
-        countdown_seconds (int): Countdown time for shutdown confirmation.
-    """
-    if play_sound:
-        try:
-            import winsound
-            print("Playing notification sound...")
-            winsound.Beep(1000, 500)  # Frequency: 1000Hz, Duration: 500ms
-        except ImportError:
-            print("winsound module not available. Skipping sound playback.")
-
-    if shutdown:
-        shutdown_with_countdown(countdown_seconds)
+    # print(f'Final Results: {results_entry}')
+    print('K-Fold Validation complete\n')
+    
+    return results_entry
 
 # %% Usage; Training settings
 from models import models #, models_multiscale
@@ -177,48 +183,48 @@ from models import models #, models_multiscale
 model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, emotion, subject_range = 'sfcc', 'PLV', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'sfcc', 'PLV', 'dominance', range(1, 24)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
 
 # Save results to XLSX (append mode)
 output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-fcnetwork, feature, emotion, subject_range = 'cm', 'PLV', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'cm', 'PLV', 'dominance', range(1, 24)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
 
 # Save results to XLSX (append mode)
 output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 3; vc
-fcnetwork, feature, emotion, subject_range = 'vc', 'PLV', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'vc', 'PLV', 'dominance', range(1, 24)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
 
 # Save results to XLSX (append mode)
 output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
-fcnetwork, feature, emotion, subject_range = 'mx', 'PLV', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'mx', 'PLV', 'dominance', range(1, 24)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, emotion_dimension=emotion, subject_range=subject_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
 
 # Save results to XLSX (append mode)
 output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120)
+utils_visualization.end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120)

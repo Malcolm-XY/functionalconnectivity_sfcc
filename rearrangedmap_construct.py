@@ -6,12 +6,11 @@ Created on Mon Jan 20 15:53:48 2025
 """
 
 import os
-from math import gamma
 
-import pandas
 import numpy as np
+import pandas as pd
 
-import utils_common
+import utils_feature_loading
 import utils_visualization
 
 # %% rearrangement by using orders
@@ -79,7 +78,7 @@ def read_rearranged_index(method, electrode_order='SEED'):
     if not os.path.exists(path_txt):
         raise FileNotFoundError(f"Index file not found: {path_txt}")
 
-    index = pandas.read_csv(path_txt, sep='\t', header=None).to_numpy().flatten()
+    index = pd.read_csv(path_txt, sep='\t', header=None).to_numpy().flatten()
     return index
 
 def reshape_and_sort(matrix, index):
@@ -207,7 +206,6 @@ if __name__ == '__main__':
     
     # %% SEED
     # import for feature reading
-    import utils_feature_loading
     fcs_sample_seed = utils_feature_loading.read_fcs('seed', 'sub1ex1', 'pcc')
 
     rearranged_MX_cm = generate_rearranged_fcs(fcs_sample_seed, 'MX', imshow=True)

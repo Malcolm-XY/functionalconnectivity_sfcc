@@ -160,7 +160,7 @@ def cnn_cross_validation(model, X, y, folds=5, batch_size=128, epochs=30, learni
 
     Parameters:
         model (torch.nn.Module): The model to evaluate.
-        X (array-like or torch.Tensor): Input data: samples x m x n
+        X (array-like or torch.Tensor)
         y (array-like or torch.Tensor): Labels.
         folds (int, optional): Number of folds for cross-validation. Default is 5.
         batch_size (int, optional): Batch size for DataLoader. Default is 128.

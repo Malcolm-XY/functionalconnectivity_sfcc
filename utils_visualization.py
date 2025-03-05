@@ -49,13 +49,14 @@ def draw_projection(sample_projection):
         plt.colorbar()
         plt.title("2D Matrix Visualization")
         plt.show()
-    elif sample_projection.ndim == 3 and sample_projection.shape[0] <= 5:
+    elif sample_projection.ndim == 3 and sample_projection.shape[0] <= 100:
         for i in range(sample_projection.shape[0]):
             plt.imshow(sample_projection[i], cmap='viridis')
             plt.colorbar()
             plt.title(f"Channel {i + 1} Visualization")
             plt.show()
-    else: raise ValueError("the dimension of sample matrix for drawing is wrong")
+    else:
+        raise ValueError(f"the dimension of sample matrix for drawing is wrong, shape of sample: {sample_projection.shape}")
 
 # %% End Program Actions
 import time

@@ -1,25 +1,24 @@
 import os
-import numpy
-import pandas
+import numpy as np
+import pandas as pd
 
-import utils_common
 
 # %% intergrated
-def generate_sfcc(cm_data, dataset, imshow=False):
+def generate_sfcc(cm_data, distribution_dataset, imshow=False):
     """
     Common function to generate SFCC (Sparse Functional Connectivity Convolution) from CM data.
 
     Args:
         cm_data (numpy.ndarray): Input connectivity matrix data. Can be 3D (samples, size, size) 
                                  or 4D (samples, channels, size, size).
-        dataset (str): The dataset name ("SEED" or "DREAMER").
+        distribution_dataset (str): The dataset name ("SEED" or "DREAMER").
         imshow (bool, optional): Whether to display the projection of the first sample. Default is False.
 
     Returns:
         numpy.ndarray: The generated SFCC data.
     """
     # Get the spatial map (smap) and channel order
-    smap, order = read_distribution(dataset)
+    smap, order = read_distribution(distribution_dataset)
 
     # Step 1: Generate lmap and covmap
     lmap, covmap = generate_lmap_and_covmap(smap)
@@ -30,19 +29,28 @@ def generate_sfcc(cm_data, dataset, imshow=False):
     # Step 3: Generate numerical covmap
     covmap_num = generate_covmap_num(covmap, CV)
 
-    if cm_data.ndim == 3:
+    if isinstance(cm_data, dict):
+        sfcc = {}        
+        for key in cm_data.keys():
+            print(f"Processing key of: {key}")
+            sfcc[key] = cm2sfcc(cm_data[key], covmap_num)
+            if imshow:
+                import utils_visualization
+                utils_visualization.draw_projection(np.mean(sfcc[key], axis=0))
+    elif cm_data.ndim == 3:
         # Case: 3D input data (samples, size, size)
         sfcc = cm2sfcc(cm_data, covmap_num)
-
+        if imshow:
+            import utils_visualization
+            utils_visualization.draw_projection(np.mean(sfcc, axis=0))
     elif cm_data.ndim == 4:
         # Case: 4D input data (samples, channels, size, size)
-        sfcc = numpy.stack([cm2sfcc(cm_data[:, ch, :, :], covmap_num) for ch in range(cm_data.shape[1])], axis=1)
-
+        sfcc = np.stack([cm2sfcc(cm_data[:, ch, :, :], covmap_num) for ch in range(cm_data.shape[1])], axis=1)
+        if imshow:
+            import utils_visualization
+            utils_visualization.draw_projection(np.mean(sfcc, axis=0))
     else:
         raise ValueError("Input cm_data must be 3D or 4D.")
-
-    if imshow:
-        utils_common.draw_projection(sfcc[0])
 
     return sfcc
 
@@ -75,8 +83,8 @@ def read_distribution(dataset):
     path_order = os.path.join(path_current, "mapping", order_file)
 
     # Read files
-    smap = pandas.read_csv(path_smap, sep="\t", header=None).values
-    order = pandas.read_csv(path_order, sep="\t")["channel"].values
+    smap = pd.read_csv(path_smap, sep="\t", header=None).values
+    order = pd.read_csv(path_order, sep="\t")["channel"].values
 
     return smap, order
    
@@ -96,13 +104,13 @@ def generate_lmap_and_covmap(smap):
     size_lmap = size_smap ** 2
 
     # 生成扩展的电极图 lmap
-    lmap = numpy.empty((size_lmap, size_lmap), dtype=object)
+    lmap = np.empty((size_lmap, size_lmap), dtype=object)
     for n in range(size_lmap):
         for m in range(size_lmap):
             lmap[m, n] = smap[m // size_smap, n // size_smap]
     
     # 生成卷积映射 covmap
-    covmap = numpy.empty((size_lmap, size_lmap), dtype=object)
+    covmap = np.empty((size_lmap, size_lmap), dtype=object)
     for n in range(size_lmap):
         for m in range(size_lmap):
             row = n // size_smap  # smap 行索引
@@ -124,7 +132,7 @@ def generate_connectivity_matrix(electrode):
     """
     ch = len(electrode)
     CM = [[f"{electrode[n]}*{electrode[m]}" for m in range(ch)] for n in range(ch)]
-    CV = numpy.array(CM).flatten()
+    CV = np.array(CM).flatten()
     return CM, CV 
 
 def generate_covmap_num(covmap, CV):
@@ -139,12 +147,12 @@ def generate_covmap_num(covmap, CV):
         covmap_num (ndarray): 数值卷积图。
     """
     size = covmap.shape[0]
-    covmap_num = numpy.zeros((size, size), dtype=int)
+    covmap_num = np.zeros((size, size), dtype=int)
     
     for i in range(size):
         for j in range(size):
             try:
-                a = numpy.where(CV == covmap[i, j])[0][0] + 1
+                a = np.where(CV == covmap[i, j])[0][0] + 1
                 covmap_num[i, j] = a
             except IndexError:
                 covmap_num[i, j] = 0
@@ -167,7 +175,7 @@ def cm2sfcc(cm_data, covmap_num, imshow=False):
     size1_covm, size2_covm = covmap_num.shape
     
     cm_flatten = cm_data.reshape(samples, -1)    
-    sfcc_temp = numpy.zeros((samples, size1_covm, size2_covm))
+    sfcc_temp = np.zeros((samples, size1_covm, size2_covm))
     
     for k in range(samples):
         for i in range(size1_covm):
@@ -180,29 +188,33 @@ def cm2sfcc(cm_data, covmap_num, imshow=False):
                     sfcc_temp[k, i, j] = cm_flatten[k, tempnum - 1]
     
     if imshow:
-        utils_common.draw_projection(numpy.mean(sfcc_temp, axis=0))
+        import utils_visualization
+        utils_visualization.draw_projection(np.mean(sfcc_temp, axis=0))
     
     return sfcc_temp
 
 # %% Example Usage
 if __name__ == "__main__":
+    import utils_feature_loading
+    import utils_visualization
+
     # %% example
-    cms = numpy.random.rand(100, 4, 4) 
-    # step 0: distribution
-    smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
-    order = ["ch1", "ch2", "ch3", "ch4"]
+    # cms = numpy.random.rand(100, 4, 4) 
+    # # step 0: distribution
+    # smap = numpy.array([["ch1", "ch2"], ["ch3", "ch4"]])
+    # order = ["ch1", "ch2", "ch3", "ch4"]
     
-    # step 1-4
-    lmap, covmap = generate_lmap_and_covmap(smap)
-    CM, CV = generate_connectivity_matrix(order)
-    covmap_num = generate_covmap_num(covmap, CV)
-    sfcc = cm2sfcc(cms, covmap_num, imshow=True)
+    # # step 1-4
+    # lmap, covmap = generate_lmap_and_covmap(smap)
+    # CM, CV = generate_connectivity_matrix(order)
+    # covmap_num = generate_covmap_num(covmap, CV)
+    # sfcc = cm2sfcc(cms, covmap_num, imshow=True)
     
-    utils_common.draw_projection(sfcc)
+    # utils_visualization.draw_projection(sfcc)
     
     # %% seed sample
     dataset, sample, feature, band = 'SEED', 'sub1ex1', 'PCC', 'gamma'
-    cms = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
+    fcs_sample = utils_feature_loading.read_fcs(dataset, sample, feature, band)
     
     # steo 0: read distribution
     smap, order = read_distribution(dataset='SEED')
@@ -211,30 +223,31 @@ if __name__ == "__main__":
     lmap, covmap = generate_lmap_and_covmap(smap)
     CM, CV = generate_connectivity_matrix(order)
     covmap_num = generate_covmap_num(covmap, CV)
-    sfcc = cm2sfcc(cms, covmap_num, imshow=True)
+    sfcc_sample = cm2sfcc(fcs_sample, covmap_num, imshow=True)
 
     # integration
-    cms_joint = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
-    sfcc_joint = generate_sfcc(cms_joint, dataset="SEED", imshow=True)
+    fcs_joint_sample_seed = utils_feature_loading.read_fcs(dataset, sample, feature, 'joint')
+    sfcc_joint_sample_seed = generate_sfcc(fcs_joint_sample_seed, distribution_dataset='SEED', imshow=True)
 
     # %% dreamer sample
-    dataset, sample, feature, band = 'DREAMER', 'sub1', 'PCC', 'gamma'
-    cms_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band=band)
+    # dataset, sample, feature, band = 'DREAMER', 'sub1', 'PCC', 'gamma'
+    # fcs_sample_dreamer = utils_feature_loading.read_fcs(dataset, sample, feature, band)
     
-    # steo 0: read distribution
-    smap_d, order_d = read_distribution(dataset='DREAMER')
+    # # steo 0: read distribution
+    # smap_d, order_d = read_distribution(dataset='DREAMER')
     
-    # step 1-4
-    lmap_d, covmap_d = generate_lmap_and_covmap(smap_d)
-    CM_d, CV_d = generate_connectivity_matrix(order_d)
-    covmap_num_d = generate_covmap_num(covmap_d, CV_d)
-    sfcc_d = cm2sfcc(cms_d, covmap_num_d, imshow=True)
+    # # step 1-4
+    # lmap_d, covmap_d = generate_lmap_and_covmap(smap_d)
+    # CM_d, CV_d = generate_connectivity_matrix(order_d)
+    # covmap_num_d = generate_covmap_num(covmap_d, CV_d)
+    # sfcc_sample_dreamer = cm2sfcc(fcs_sample_dreamer, covmap_num_d, imshow=True)
     
-    # integration
-    cms_joint_d = utils_common.load_cms(dataset=dataset, experiment=sample, feature=feature, band='joint')
-    sfcc_joint_d = generate_sfcc(cms_joint_d, dataset="DREAMER", imshow=True)
+    # # integration
+    # fcs_joint_sample_dreamer = utils_feature_loading.read_fcs(dataset, sample, feature, 'joint')
+    # sfcc_joint_sample_dreamer = generate_sfcc(fcs_joint_sample_dreamer, distribution_dataset="DREAMER", imshow=True)
     
-    import numpy as np
-    import featureengineering_dreamer
-    fcs = featureengineering_dreamer.interpolate_matrices(sfcc_joint_d)
-    utils_common.draw_projection(np.mean(fcs, axis=(0)))
+    # %% interpolation
+    import featrue_engineering
+    fcs = featrue_engineering.interpolate_matrices(sfcc_joint_sample_seed, method='nearest')
+    for key in fcs.keys():
+        utils_visualization.draw_projection(np.mean(fcs[key], axis=0))

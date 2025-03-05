@@ -8,19 +8,22 @@ Created on Fri Jan  3 14:34:33 2025
 import os
 import numpy as np
 import pandas as pd
+
 import torch
 
 import cnn_validation
+import utils_feature_loading
+import utils_visualization
 
-import utils_common
 import covmap_construct
 import rearrangedmap_construct
 
 # %% Validation Circle
 def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_range):
     # labels and targets
-    labels = utils_common.read_labels_seed()
-    targets = torch.tensor(labels)
+    labels = utils_feature_loading.read_labels('seed')
+    labels_tensor = torch.tensor(labels)
+    unique_classes, targets = torch.unique(labels_tensor, sorted=True, return_inverse=True)
     
     results_entry = []
     for sub in subject_range:
@@ -29,19 +32,24 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
             print(f'Processing {identifier}...')
             
             # get connectivity matrices
-            cms = utils_common.load_cms(dataset='SEED', experiment=identifier, feature=feature, band='joint', imshow=True)
-            
-            # feature engineering engineering; functional connectivity networks
+            fcs = utils_feature_loading.read_fcs('seed', identifier, feature, band='joint')
+
+            # feature engineering; functional connectivity networks
             if fcnetwork == 'sfcc':
-                fcs = covmap_construct.generate_sfcc(cms, "SEED", imshow=True)
+                # Draw sfcc
+                fcs = covmap_construct.generate_sfcc(fcs, 'SEED', imshow=False)
+                fcs = np.stack(list(fcs.values()), axis=1)
+                utils_visualization.draw_projection(np.mean(fcs, axis=0))
+
             elif fcnetwork == 'cm':
-                fcs = cms
+                fcs = fcs
                 fcs = rearrangedmap_construct.global_padding(fcs)
-                utils_common.draw_projection(np.mean(fcs, axis=0))
+                fcs = np.stack(list(fcs.values()), axis=1)
+                utils_visualization.draw_projection(np.mean(fcs, axis=0))
             elif fcnetwork == 'mx':
-                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'MX', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'MX', imshow = True)
             elif fcnetwork == 'vc':
-                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'VC', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'VC', imshow = True)
             
             # Validation
             result = cnn_validation.cnn_validation(model, fcs, targets)
@@ -51,15 +59,17 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
             results_entry.append(result)
 
     # print(f'Final Results: {results_entry}')
-    print('K-Fold Validation compelete\n')
+    print('K-Fold Validation complete\n')
     
     return results_entry
 
 # %% Cross Validation Circle
 def cnn_cross_validation_circle(model, method, feature, subject_range, experiment_range):
     # labels and targets
-    labels = utils_common.read_labels_seed()
-    targets = torch.tensor(labels)
+    labels = np.array(utils_feature_loading.read_labels('seed'))
+    labels = np.reshape(labels, -1)
+    labels_tensor = torch.tensor(labels)
+    unique_classes, targets = torch.unique(labels_tensor, sorted=True, return_inverse=True)
     
     results_entry = []
     for sub in subject_range:
@@ -68,19 +78,25 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
             print(f'Processing {identifier}...')
 
             # get connectivity matrices
-            cms = utils_common.load_cms(dataset='SEED', experiment=identifier, feature=feature, band='joint', imshow=True)
+            fcs = utils_feature_loading.read_fcs('seed', identifier, feature, band='joint')
             
             # feature engineering; functional connectivity networks
             if method == 'sfcc':
-                fcs = covmap_construct.generate_sfcc(cms, dataset="SEED", imshow=True)
+                # Draw sfcc
+                fcs = covmap_construct.generate_sfcc(fcs, "SEED", imshow=False)
+                fcs = np.stack([fcs['alpha'], fcs['beta'], fcs['gamma']], axis=1)
+
+                utils_visualization.draw_projection(np.mean(fcs, axis=0))
             elif method == 'cm':
-                fcs = cms
+                fcs = fcs
+                fcs = np.stack([fcs['alpha'], fcs['beta'], fcs['gamma']], axis=1)
                 fcs = rearrangedmap_construct.global_padding(fcs)
-                utils_common.draw_projection(np.mean(fcs, axis=(0,1)))
+                
+                utils_visualization.draw_projection(np.mean(fcs, axis=0))
             elif method == 'mx':
-                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'MX', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'MX', imshow = True)
             elif method == 'vc':
-                fcs = rearrangedmap_construct.generate_rearranged_fcs(cms, 'VC', imshow = True)
+                fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'VC', imshow = True)
             
             # Validation
             result = cnn_validation.cnn_cross_validation(model, fcs, targets)
@@ -90,7 +106,7 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
             results_entry.append(result)
 
     # print(f'Final Results: {results_entry}')
-    print('K-Fold Validation compelete\n')
+    print('K-Fold Validation complete\n')
     
     return results_entry
 
@@ -148,83 +164,27 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
     print(f"Results successfully saved to: {output_path}")
     return output_path
 
-# %% End Program Actions
-import time
-import threading
-def shutdown_with_countdown(countdown_seconds=30):
-    """
-    Initiates a shutdown countdown, allowing the user to cancel shutdown within the given time.
-
-    Args:
-        countdown_seconds (int): The number of seconds to wait before shutting down.
-    """
-    def cancel_shutdown():
-        nonlocal shutdown_flag
-        user_input = input("\nPress 'c' and Enter to cancel shutdown: ").strip().lower()
-        if user_input == 'c':
-            shutdown_flag = False
-            print("Shutdown cancelled.")
-
-    # Flag to determine whether to proceed with shutdown
-    shutdown_flag = True
-
-    # Start a thread to listen for user input
-    input_thread = threading.Thread(target=cancel_shutdown, daemon=True)
-    input_thread.start()
-
-    # Countdown timer
-    print(f"Shutdown scheduled in {countdown_seconds} seconds. Press 'c' to cancel.")
-    for i in range(countdown_seconds, 0, -1):
-        print(f"Time remaining: {i} seconds", end="\r")
-        time.sleep(1)
-
-    # Check the flag after countdown
-    if shutdown_flag:
-        print("\nShutdown proceeding...")
-        os.system("shutdown /s /t 1")  # Execute shutdown command
-    else:
-        print("\nShutdown aborted.")
-
-def end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120):
-    """
-    Performs actions at the end of the program, such as playing a sound or shutting down the system.
-
-    Args:
-        play_sound (bool): If True, plays a notification sound.
-        shutdown (bool): If True, initiates shutdown with a countdown.
-        countdown_seconds (int): Countdown time for shutdown confirmation.
-    """
-    if play_sound:
-        try:
-            import winsound
-            print("Playing notification sound...")
-            winsound.Beep(1000, 500)  # Frequency: 1000Hz, Duration: 500ms
-        except ImportError:
-            print("winsound module not available. Skipping sound playback.")
-
-    if shutdown:
-        shutdown_with_countdown(countdown_seconds)
-
 # %% Usage; Training settings
 from models import models #, models_multiscale
 
 model = models.MSCNN_3_2layers_cv_235_adaptive_maxpool_3()
+model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PCC', range(1, 2), range(1, 2)
+# fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(1, 5), range(1, 4)
 
-# trainning and validation
-results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# # training and validation
+# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# Save results to XLSX (append mode)
-output_dir = os.path.join(os.getcwd(), 'results')
-filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-save_results_to_xlsx_append(results, output_dir, filename)
+# # Save results to XLSX (append mode)
+# output_dir = os.path.join(os.getcwd(), 'results')
+# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+# save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PCC', range(1, 2), range(1, 2)
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 2), range(1, 4)
 
-# trainning and validation
+# training and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
 # Save results to XLSX (append mode)
@@ -235,7 +195,7 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # %% validation 3; vc
 # fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 2), range(1, 2)
 
-# # trainning and validation
+# # training and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
 # # Save results to XLSX (append mode)
@@ -246,7 +206,7 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # %% validation 4; mx
 # fcnetwork, feature, subject_range, experiment_range = 'mx', 'PCC', range(1, 16), range(1, 4)
 
-# # trainning and validation
+# # training and validation
 # results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
 # # Save results to XLSX (append mode)
@@ -255,4 +215,4 @@ save_results_to_xlsx_append(results, output_dir, filename)
 # save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
-end_program_actions(play_sound=True, shutdown=False, countdown_seconds=30)
+utils_visualization.end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120)
