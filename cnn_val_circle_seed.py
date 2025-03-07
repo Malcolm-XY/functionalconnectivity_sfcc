@@ -78,7 +78,8 @@ def cnn_cross_validation_circle(model, method, feature, subject_range, experimen
             print(f'Processing {identifier}...')
 
             # get connectivity matrices
-            fcs = utils_feature_loading.read_fcs('seed', identifier, feature, band='joint')
+            # fcs = utils_feature_loading.read_fcs('seed', identifier, feature, band='joint')
+            fcs = utils_feature_loading.read_fcs_mat('seed', identifier, feature, 'joint')
             
             # feature engineering; functional connectivity networks
             if method == 'sfcc':
@@ -167,22 +168,22 @@ def save_results_to_xlsx_append(results, output_dir, filename, sheet_name='K-Fol
 # %% Usage; Training settings
 from models import models #, models_multiscale
 
+# model = models.CNN_2layers_adaptive_maxpool_3()
 model = models.MSCNN_3_2layers_cv_235_adaptive_maxpool_3()
-model = models.CNN_2layers_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-# fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(1, 5), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'sfcc', 'PLV', range(10, 16), range(1, 4)
 
-# # training and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(1, 2), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'cm', 'PLV', range(10, 16), range(1, 4)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -193,26 +194,26 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 3; vc
-# fcnetwork, feature, subject_range, experiment_range = 'vc', 'PCC', range(1, 2), range(1, 2)
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PLV', range(10, 16), range(1, 4)
 
-# # training and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
-# fcnetwork, feature, subject_range, experiment_range = 'mx', 'PCC', range(1, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'mx', 'PLV', range(10, 16), range(1, 4)
 
-# # training and validation
-# results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
+# training and validation
+results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
 
-# # Save results to XLSX (append mode)
-# output_dir = os.path.join(os.getcwd(), 'results')
-# filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
-# save_results_to_xlsx_append(results, output_dir, filename)
+# Save results to XLSX (append mode)
+output_dir = os.path.join(os.getcwd(), 'results')
+filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
+save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% End program actions
 utils_visualization.end_program_actions(play_sound=True, shutdown=False, countdown_seconds=120)
