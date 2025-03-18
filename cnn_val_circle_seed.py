@@ -194,7 +194,7 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 3; vc
-fcnetwork, feature, subject_range, experiment_range = 'vc', 'PLV', range(10, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'vc', 'PLV', range(1, 16), range(1, 4)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)
@@ -205,7 +205,7 @@ filename = f"{fcnetwork}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
-fcnetwork, feature, subject_range, experiment_range = 'mx', 'PLV', range(10, 16), range(1, 4)
+fcnetwork, feature, subject_range, experiment_range = 'mx', 'PLV', range(1, 16), range(1, 4)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fcnetwork, feature, subject_range, experiment_range)

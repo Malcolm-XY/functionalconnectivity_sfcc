@@ -165,7 +165,9 @@ def read_ranking(ranking='all'):
     
     # Define path
     path_current = os.getcwd()
-    path_ranking = os.path.join(path_current, 'Distribution', 'electrodes_ranking.xlsx')
+    path_parent = os.path.dirname(path_current)
+    path_parent_parent = os.path.dirname(path_parent)
+    path_ranking = os.path.join(path_parent_parent, 'Research_Data', 'SEED', 'distribution', 'electrodes_ranking.xlsx')
     
     # Check if file exists
     if not os.path.exists(path_ranking):
@@ -197,6 +199,11 @@ if __name__ == "__main__":
     
     dataset, experiment_sample = 'dreamer', 'sub1'
     seed_fcs_sample_dreamer = read_fcs(dataset, experiment_sample, feature_sample, freq_sample)
+    
+    import utils_visualization
+    import numpy as np
+    utils_visualization.draw_projection(np.mean(seed_fcs_sample_seed['alpha'], axis=0))
+    utils_visualization.draw_projection(np.mean(seed_fcs_sample_dreamer['alpha'], axis=0))
     
     # %% read labels
     labels_seed_ = read_labels('seed')
