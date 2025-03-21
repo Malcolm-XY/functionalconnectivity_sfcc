@@ -184,7 +184,7 @@ from models import models #, models_multiscale
 model = models.MSCNN_3_2layers_cv_235_adaptive_maxpool_3()
 
 # %% validation 1; sfcc
-fc_network, feature, emotion, subject_range = 'sfcc', 'PCC', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'sfcc', 'PCC', 'arousal', range(1, 24)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -195,7 +195,7 @@ filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 2; cm
-fc_network, feature, emotion, subject_range = 'cm', 'PCC', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'cm', 'PCC', 'arousal', range(1, 24)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -206,7 +206,7 @@ filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 3; vc
-fc_network, feature, emotion, subject_range = 'vc', 'PCC', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'vc', 'PCC', 'arousal', range(1, 24)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
@@ -217,7 +217,7 @@ filename = f"{fc_network}_{type(model).__name__}_{feature}.xlsx"
 save_results_to_xlsx_append(results, output_dir, filename)
 
 # %% validation 4; mx
-fc_network, feature, emotion, subject_range = 'mx', 'PCC', 'dominance', range(1, 24)
+fc_network, feature, emotion, subject_range = 'mx', 'PCC', 'arousal', range(1, 24)
 
 # training and validation
 results = cnn_cross_validation_circle(model, fc_network, feature, emotion_dimension=emotion, subject_range=subject_range)
