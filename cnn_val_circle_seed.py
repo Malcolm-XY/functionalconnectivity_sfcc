@@ -51,7 +51,7 @@ def cnn_validation_circle(model, fcnetwork, feature, subject_range, experiment_r
             elif fcnetwork == 'vc':
                 fcs = rearrangedmap_construct.generate_rearranged_fcs(fcs, 'VC', imshow = True)
             
-            # Validation
+            # Training and Validation
             result = cnn_validation.cnn_validation(model, fcs, targets)
             
             # Add identifier to the result
