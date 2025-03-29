@@ -373,6 +373,7 @@ class CNN_2layers_adaptive_avgpool_3(nn.Module):
         x = self.fc2(x)
         return x
 
+# employed **********
 class CNN_2layers_adaptive_maxpool_3(nn.Module):
     """
     this model is identified as:
